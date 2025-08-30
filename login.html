@@ -1,47 +1,93 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Connexion / Inscription</title>
   <style>
-    body {
-      display: flex; justify-content: center; align-items: center;
-      height: 100vh; background: linear-gradient(135deg,#ff416c,#ff4b2b);
-      font-family: Arial, sans-serif; color: white;
-    }
-    .box {
-      background: rgba(0,0,0,0.6); padding: 2rem;
-      border-radius: 15px; width: 300px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      text-align: center;
-    }
-    input, button {
-      padding: 10px; margin: 8px 0; border-radius: 8px;
-      border: none; width: 100%;
-    }
-    button { background: #4CAF50; color: white; cursor: pointer; }
-    button:hover { background: #45a049; }
-    .toggle { margin-top: 10px; cursor: pointer; color: #ffd369; }
+    /* même style que index (intégré) */
+    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --success: #2ecc71; --danger: #ff6b6b; --text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--text);-webkit-font-smoothing:antialiased}
+    .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
+    .card{width:100%; max-width:520px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
+    .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,#ffd369,#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
+    h1{margin:0;font-size:20px}
+    .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
+    .field{margin-bottom:12px}
+    label{display:block;font-size:13px;color:var(--muted); margin-bottom:6px}
+    .input-row{display:flex; gap:8px; align-items:center}
+    .input {width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background: rgba(10,14,30,0.2); color:var(--text); font-size:14px; outline:none}
+    .input:focus{box-shadow: 0 6px 18px rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.12)}
+    .row-between{display:flex; justify-content:space-between; align-items:center}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white; box-shadow: 0 8px 22px rgba(102,51,255,0.14);}
+    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text)}
+    .small{font-size:13px; padding:8px 10px}
+    .message{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:13px}
+    .error{ background: rgba(255,107,107,0.12); color:var(--danger); border:1px solid rgba(255,107,107,0.12) }
+    .success{ background: rgba(46,204,113,0.08); color:var(--success); border:1px solid rgba(46,204,113,0.06) }
+    .info-btn{width:36px; height:36px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); cursor:pointer; font-weight:700;}
+    .tooltip{margin-top:8px; font-size:13px; color:var(--muted); background: rgba(0,0,0,0.28); padding:8px 10px; border-radius:8px; display:none;}
+    @media (max-width:520px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2 id="formTitle">Créer un compte</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Mot de passe">
-    <button onclick="handleAuth()">S'inscrire</button>
-    <p class="toggle" onclick="toggleForm()">Déjà un compte ? Connecte-toi</p>
-    <p id="error"></p>
+  <div class="container">
+    <div class="card" role="main" aria-labelledby="main-title">
+      <div class="logo">
+        <div class="mark">CL</div>
+        <div>
+          <h1 id="main-title">Connexion / Inscription</h1>
+          <div class="lead">Crée un compte ou connecte-toi pour accéder à la classe.</div>
+        </div>
+      </div>
+
+      <div id="formArea">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" class="input" type="email" placeholder="ex: toto@mail.com" autocomplete="email">
+        </div>
+
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <div class="input-row">
+            <input id="password" class="input" type="password" placeholder="Ton mot de passe" autocomplete="new-password">
+            <button type="button" class="info-btn" id="pwInfo" title="Conseil mot de passe">i</button>
+          </div>
+          <div id="pwTooltip" class="tooltip">Veuillez ne pas utiliser le même mot de passe que vos comptes courants.</div>
+        </div>
+
+        <div class="field">
+          <label for="pseudo">Pseudo <span style="color:var(--muted);font-weight:500">(optionnel)</span></label>
+          <input id="pseudo" class="input" type="text" placeholder="Ton pseudo (ex: Léo)">
+        </div>
+
+        <div class="field">
+          <label for="lastname">Nom de famille <span style="color:var(--muted);font-weight:500">(optionnel)</span></label>
+          <input id="lastname" class="input" type="text" placeholder="Nom (optionnel)">
+        </div>
+
+        <div class="row-between" style="margin-top:6px">
+          <button class="btn" id="primaryBtn">Créer un compte</button>
+          <button class="btn secondary small" id="toggleBtn">Déjà un compte ?</button>
+        </div>
+
+        <div id="message" class="message" style="display:none; margin-top:12px"></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script type="module">
-    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-      from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
-    // Config Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
       authDomain: "laclassedefou.firebaseapp.com",
@@ -55,33 +101,103 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    const emailEl = document.getElementById('email');
+    const pwEl = document.getElementById('password');
+    const pseudoEl = document.getElementById('pseudo');
+    const lastnameEl = document.getElementById('lastname');
+    const primaryBtn = document.getElementById('primaryBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const message = document.getElementById('message');
+    const pwInfo = document.getElementById('pwInfo');
+    const pwTooltip = document.getElementById('pwTooltip');
+
     let isLogin = false;
 
-    function toggleForm() {
-      isLogin = !isLogin;
-      document.getElementById("formTitle").innerText = isLogin ? "Se connecter" : "Créer un compte";
-      document.querySelector("button").innerText = isLogin ? "Se connecter" : "S'inscrire";
-      document.querySelector(".toggle").innerText = isLogin ? "Pas encore de compte ? Inscris-toi" : "Déjà un compte ? Connecte-toi";
+    function showMessage(text, type='error') {
+      message.style.display = 'block';
+      message.className = 'message ' + (type === 'error' ? 'error' : 'success');
+      message.innerText = text;
     }
-    window.toggleForm = toggleForm;
+    function clearMessage(){ message.style.display='none'; message.innerText=''; }
 
-    function handleAuth() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      if (isLogin) {
-        // Connexion
-        signInWithEmailAndPassword(auth, email, password)
-          .then(() => window.location.href = "home.html")
-          .catch(err => document.getElementById("error").innerText = "❌ " + err.message);
-      } else {
-        // Inscription
-        createUserWithEmailAndPassword(auth, email, password)
-          .then(() => window.location.href = "home.html")
-          .catch(err => document.getElementById("error").innerText = "❌ " + err.message);
+    function friendlyError(err){
+      if(!err) return "Une erreur est survenue.";
+      const code = err.code || '';
+      switch(code){
+        case 'auth/email-already-in-use':
+          return "Cet email est déjà utilisé. Essaie de te connecter ou utilise un autre email.";
+        case 'auth/invalid-email':
+          return "Adresse email invalide.";
+        case 'auth/weak-password':
+          return "Mot de passe trop faible. Utilise au moins 6 caractères.";
+        case 'auth/user-not-found':
+          return "Aucun compte trouvé avec cet email.";
+        case 'auth/wrong-password':
+          return "Mot de passe incorrect. Vérifie et réessaie.";
+        case 'auth/too-many-requests':
+          return "Trop de tentatives. Réessaie dans quelques minutes.";
+        case 'auth/operation-not-allowed':
+          return "Connexion non autorisée. Contacte l'administrateur.";
+        default:
+          const msg = err.message || String(err);
+          return msg.replace(/^Firebase:\s*/i, '').replace(/\s*\(auth\/[^\)]+\)\.?/i,'').trim() || "Une erreur est survenue.";
       }
     }
-    window.handleAuth = handleAuth;
+
+    function toggleMode(){
+      isLogin = !isLogin;
+      primaryBtn.textContent = isLogin ? 'Se connecter' : "Créer un compte";
+      toggleBtn.textContent = isLogin ? "Pas encore de compte ?" : "Déjà un compte ?";
+      clearMessage();
+    }
+    toggleBtn.addEventListener('click', toggleMode);
+
+    pwInfo.addEventListener('click', ()=>{
+      pwTooltip.style.display = pwTooltip.style.display === 'block' ? 'none' : 'block';
+    });
+
+    primaryBtn.addEventListener('click', async ()=>{
+      clearMessage();
+      const email = (emailEl.value||'').trim();
+      const pw = pwEl.value || '';
+      const pseudo = (pseudoEl.value||'').trim();
+      const lastname = (lastnameEl.value||'').trim();
+
+      if(!email || !pw){
+        showMessage("Email et mot de passe sont requis.", 'error');
+        return;
+      }
+
+      primaryBtn.disabled = true;
+      primaryBtn.style.opacity = 0.8;
+
+      try {
+        if(isLogin){
+          await signInWithEmailAndPassword(auth, email, pw);
+        } else {
+          const cred = await createUserWithEmailAndPassword(auth, email, pw);
+          const display = pseudo || lastname ? ((pseudo ? pseudo : '') + (pseudo && lastname ? ' ' : '') + (lastname ? lastname : '')) : null;
+          if(display){
+            await updateProfile(cred.user, { displayName: display });
+          }
+        }
+      } catch(err){
+        showMessage(friendlyError(err), 'error');
+      } finally {
+        primaryBtn.disabled = false;
+        primaryBtn.style.opacity = 1;
+      }
+    });
+
+    onAuthStateChanged(auth, user => {
+      if(user){
+        setTimeout(()=> window.location.href = 'home.html', 250);
+      }
+    });
+
+    [emailEl, pwEl, pseudoEl, lastnameEl].forEach(el=>{
+      el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') primaryBtn.click(); });
+    });
   </script>
 </body>
 </html>
