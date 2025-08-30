@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion / Inscription</title>
+  <style>
+    body {
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; background: linear-gradient(135deg,#ff416c,#ff4b2b);
+      font-family: Arial, sans-serif; color: white;
+    }
+    .box {
+      background: rgba(0,0,0,0.6); padding: 2rem;
+      border-radius: 15px; width: 300px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    input, button {
+      padding: 10px; margin: 8px 0; border-radius: 8px;
+      border: none; width: 100%;
+    }
+    button { background: #4CAF50; color: white; cursor: pointer; }
+    button:hover { background: #45a049; }
+    .toggle { margin-top: 10px; cursor: pointer; color: #ffd369; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2 id="formTitle">Créer un compte</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Mot de passe">
+    <button onclick="handleAuth()">S'inscrire</button>
+    <p class="toggle" onclick="toggleForm()">Déjà un compte ? Connecte-toi</p>
+    <p id="error"></p>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+      from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+    // Config Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+      authDomain: "laclassedefou.firebaseapp.com",
+      projectId: "laclassedefou",
+      storageBucket: "laclassedefou.firebasestorage.app",
+      messagingSenderId: "625518146786",
+      appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+      measurementId: "G-DP9HJXJGTC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    let isLogin = false;
+
+    function toggleForm() {
+      isLogin = !isLogin;
+      document.getElementById("formTitle").innerText = isLogin ? "Se connecter" : "Créer un compte";
+      document.querySelector("button").innerText = isLogin ? "Se connecter" : "S'inscrire";
+      document.querySelector(".toggle").innerText = isLogin ? "Pas encore de compte ? Inscris-toi" : "Déjà un compte ? Connecte-toi";
+    }
+    window.toggleForm = toggleForm;
+
+    function handleAuth() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if (isLogin) {
+        // Connexion
+        signInWithEmailAndPassword(auth, email, password)
+          .then(() => window.location.href = "home.html")
+          .catch(err => document.getElementById("error").innerText = "❌ " + err.message);
+      } else {
+        // Inscription
+        createUserWithEmailAndPassword(auth, email, password)
+          .then(() => window.location.href = "home.html")
+          .catch(err => document.getElementById("error").innerText = "❌ " + err.message);
+      }
+    }
+    window.handleAuth = handleAuth;
+  </script>
+</body>
+</html>
