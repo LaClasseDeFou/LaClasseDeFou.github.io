@@ -5,30 +5,44 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Accueil — Classe</title>
   <style>
-    /* même style intégré */
-    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --success: #2ecc71; --danger: #ff6b6b; --text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --accent-dark: #ffb84d; --success: #2ecc71; --danger: #ff6b6b; --card-text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;}
     *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--text);-webkit-font-smoothing:antialiased}
+    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
     .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
     .card{width:100%; max-width:720px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
     .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
-    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,#ffd369,#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
+    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
     .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
     .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white; box-shadow: 0 8px 22px rgba(102,51,255,0.14);}
-    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text)}
+    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--card-text)}
     .message{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:13px}
     .success{ background: rgba(46,204,113,0.08); color:var(--success); border:1px solid rgba(46,204,113,0.06) }
-    @media (max-width:720px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } }
+
+    .info-btn{
+      width:48px; height:48px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+      border:2px solid rgba(0,0,0,0.12);
+      background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+      color:#0f1724; cursor:pointer; font-weight:800; font-size:16px;
+      box-shadow: 0 10px 30px rgba(255,183,77,0.18);
+    }
+    .info-btn:hover{ transform: translateY(-3px); box-shadow: 0 16px 36px rgba(255,183,77,0.26); }
+
+    @media (max-width:720px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } .info-btn{ width:44px; height:44px } }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card home-wrap">
-      <div class="logo" style="justify-content:flex-start">
-        <div class="mark">CL</div>
-        <div style="text-align:left">
-          <h1 id="welcomeTitle">Bienvenue</h1>
-          <div class="lead" id="subText">Chargement…</div>
+      <div style="display:flex; align-items:center; justify-content:space-between">
+        <div style="display:flex; align-items:center; gap:12px">
+          <div class="mark">CL</div>
+          <div style="text-align:left">
+            <h1 id="welcomeTitle">Bienvenue</h1>
+            <div class="lead" id="subText">Chargement…</div>
+          </div>
+        </div>
+        <div>
+          <button class="info-btn" id="homeInfo" title="Contact">i</button>
         </div>
       </div>
 
@@ -63,6 +77,7 @@
     const infoMsg = document.getElementById('infoMsg');
     const logoutBtn = document.getElementById('logoutBtn');
     const dashboardBtn = document.getElementById('dashboardBtn');
+    const homeInfo = document.getElementById('homeInfo');
 
     function showInfo(text){
       infoMsg.style.display='block';
@@ -76,8 +91,7 @@
         return;
       }
       if(!user.emailVerified){
-        // sécurité supplémentaire : si par miracle on arrive ici sans vérif
-        showInfo("Ton email n'est pas vérifié. Retour au login.",);
+        showInfo("Ton email n'est pas vérifié. Retour au login.");
         setTimeout(()=> { signOut(auth).then(()=> window.location.href = 'login.html'); }, 500);
         return;
       }
@@ -86,6 +100,10 @@
       welcomeTitle.innerText = name ? `Bienvenue, ${name} 🎉` : 'Bienvenue 🎉';
       subText.innerText = `Connecté en tant que ${email}`;
       showInfo("Tu es connecté. Clique sur 'Se déconnecter' pour quitter.");
+    });
+
+    homeInfo.addEventListener('click', ()=> {
+      alert("Un problème ? Contactez Kenzo.S");
     });
 
     logoutBtn.addEventListener('click', ()=>{
