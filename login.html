@@ -5,31 +5,45 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Connexion / Inscription</title>
   <style>
-    /* même style intégré */
-    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --success: #2ecc71; --danger: #ff6b6b; --text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --accent-dark: #ffb84d; --success: #2ecc71; --danger: #ff6b6b; --card-text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;}
     *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--text);-webkit-font-smoothing:antialiased}
+    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
     .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
     .card{width:100%; max-width:520px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
     .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px; justify-content:space-between;}
-    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,#ffd369,#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
-    h1{margin:0;font-size:20px}
+    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
+    h1{margin:0;font-size:20px;color:var(--card-text)}
     .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
     .field{margin-bottom:12px}
     label{display:block;font-size:13px;color:var(--muted); margin-bottom:6px}
     .input-row{display:flex; gap:8px; align-items:center}
-    .input {width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background: rgba(10,14,30,0.2); color:var(--text); font-size:14px; outline:none}
-    .input:focus{box-shadow: 0 6px 18px rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.12)}
-    .row-between{display:flex; justify-content:space-between; align-items:center}
+    .input {width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background: rgba(10,14,30,0.2); color:var(--card-text); font-size:14px; outline:none}
     .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white; box-shadow: 0 8px 22px rgba(102,51,255,0.14);}
-    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text)}
+    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--card-text)}
     .small{font-size:13px; padding:8px 10px}
     .message{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:13px}
     .error{ background: rgba(255,107,107,0.12); color:var(--danger); border:1px solid rgba(255,107,107,0.12) }
     .success{ background: rgba(46,204,113,0.08); color:var(--success); border:1px solid rgba(46,204,113,0.06) }
-    .info-btn{width:36px; height:36px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); cursor:pointer; font-weight:700;}
+
+    /* info button - plus visible */
+    .info-btn{
+      width:48px; height:48px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+      border:2px solid rgba(0,0,0,0.12);
+      background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+      color:#0f1724; cursor:pointer; font-weight:800; font-size:16px;
+      box-shadow: 0 10px 30px rgba(255,183,77,0.18);
+      transition: transform .14s ease, box-shadow .14s ease;
+    }
+    .info-btn:hover{ transform: translateY(-3px); box-shadow: 0 16px 36px rgba(255,183,77,0.26); }
+    .info-btn.pulse{ animation: pulse 2.2s infinite; }
+    @keyframes pulse {
+      0% { box-shadow: 0 10px 30px rgba(255,183,77,0.12); }
+      50% { box-shadow: 0 20px 40px rgba(255,183,77,0.18); }
+      100% { box-shadow: 0 10px 30px rgba(255,183,77,0.12); }
+    }
+
     .tooltip{margin-top:8px; font-size:13px; color:var(--muted); background: rgba(0,0,0,0.28); padding:8px 10px; border-radius:8px; display:none;}
-    @media (max-width:520px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } }
+    @media (max-width:520px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } .info-btn{ width:44px; height:44px } }
   </style>
 </head>
 <body>
@@ -43,9 +57,8 @@
             <div class="lead">Crée un compte ou connecte-toi pour accéder à la classe.</div>
           </div>
         </div>
-        <!-- info button -->
         <div>
-          <button class="info-btn" id="loginInfo" title="Info">i</button>
+          <button class="info-btn pulse" id="loginInfo" title="Info">i</button>
         </div>
       </div>
 
@@ -199,23 +212,16 @@
             await signOut(auth);
             return;
           }
-          // si vérifié, on laisse onAuthStateChanged rediriger
         } else {
-          // création + envoi email de vérification + updateProfile
           const cred = await createUserWithEmailAndPassword(auth, email, pw);
           const user = cred.user;
           const display = pseudo || lastname ? ((pseudo ? pseudo : '') + (pseudo && lastname ? ' ' : '') + (lastname ? lastname : '')) : null;
           if(display){
             await updateProfile(user, { displayName: display });
           }
-          // envoi email de vérification
           await sendEmailVerification(user);
-          // informer l'utilisateur et déconnecter pour qu'il vérifie son mail
           showMessage("Email de confirmation envoyé. Vérifie ta boîte mail pour activer ton compte.", 'success');
-          // courte attente puis déconnexion pour bloquer l'accès jusqu'à vérification
-          setTimeout(async ()=> {
-            try{ await signOut(auth); } catch(e){}
-          }, 300);
+          setTimeout(async ()=> { try{ await signOut(auth); } catch(e){} }, 300);
           return;
         }
       } catch(err){
@@ -226,13 +232,11 @@
       }
     });
 
-    // redirection vers home si déjà connecté et email vérifié
     onAuthStateChanged(auth, user => {
       if(user){
         if(user.emailVerified){
           setTimeout(()=> window.location.href = 'home.html', 250);
         } else {
-          // si connecté mais non vérifié (rare ici), forcer déconnexion et demander vérif
           showMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail pour activer ton compte.", 'error');
           setTimeout(async ()=> { try{ await signOut(auth); }catch(e){} }, 400);
         }
