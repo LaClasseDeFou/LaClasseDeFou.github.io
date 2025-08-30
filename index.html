@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion - Clé de sécurité</title>
+  <style>
+    body {
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; background: linear-gradient(135deg,#6a11cb,#2575fc);
+      font-family: Arial, sans-serif; color: white;
+    }
+    .box {
+      background: rgba(0,0,0,0.6); padding: 2rem;
+      border-radius: 15px; text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    input, button {
+      padding: 10px; margin: 8px 0; border-radius: 8px;
+      border: none; width: 100%;
+    }
+    button { background: #4CAF50; color: white; cursor: pointer; }
+    button:hover { background: #45a049; }
+    .error { color: #ff6b6b; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Entrer la clé secrète 🔑</h2>
+    <input type="password" id="keyInput" placeholder="Clé de sécurité">
+    <button onclick="checkKey()">Valider</button>
+    <p id="error" class="error"></p>
+  </div>
+
+  <script>
+    function checkKey() {
+      const correctKey = "xvii1xwyax"; 
+      const input = document.getElementById("keyInput").value.trim();
+      if (input === correctKey) {
+        window.location.href = "login.html";
+      } else {
+        document.getElementById("error").innerText = "❌ Clé incorrecte, réessaie.";
+      }
+    }
+  </script>
+</body>
+</html>
