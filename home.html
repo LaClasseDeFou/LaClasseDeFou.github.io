@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Accueil - Classe</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; text-align: center; padding: 50px; }
+    h1 { color: #333; }
+    button { margin-top: 20px; padding: 10px 20px; border: none; border-radius: 8px; background: #e74c3c; color: white; cursor: pointer; }
+    button:hover { background: #c0392b; }
+  </style>
+</head>
+<body>
+  <h1>🎉 Bienvenue dans la classe !</h1>
+  <p>Tu es bien connecté.</p>
+  <button onclick="logout()">Se déconnecter</button>
+
+  <!-- Firebase Logout -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+      authDomain: "laclassedefou.firebaseapp.com",
+      projectId: "laclassedefou",
+      storageBucket: "laclassedefou.firebasestorage.app",
+      messagingSenderId: "625518146786",
+      appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+      measurementId: "G-DP9HJXJGTC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    function logout() {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    }
+    window.logout = logout;
+  </script>
+</body>
+</html>
