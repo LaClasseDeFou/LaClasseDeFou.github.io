@@ -1,24 +1,49 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Accueil - Classe</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accueil — Classe</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f9; text-align: center; padding: 50px; }
-    h1 { color: #333; }
-    button { margin-top: 20px; padding: 10px 20px; border: none; border-radius: 8px; background: #e74c3c; color: white; cursor: pointer; }
-    button:hover { background: #c0392b; }
+    /* même style intégré */
+    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --success: #2ecc71; --danger: #ff6b6b; --text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--text);-webkit-font-smoothing:antialiased}
+    .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
+    .card{width:100%; max-width:720px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
+    .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,#ffd369,#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
+    .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white; box-shadow: 0 8px 22px rgba(102,51,255,0.14);}
+    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text)}
+    .message{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:13px}
+    .success{ background: rgba(46,204,113,0.08); color:var(--success); border:1px solid rgba(46,204,113,0.06) }
+    @media (max-width:720px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } }
   </style>
 </head>
 <body>
-  <h1>🎉 Bienvenue dans la classe !</h1>
-  <p>Tu es bien connecté.</p>
-  <button onclick="logout()">Se déconnecter</button>
+  <div class="container">
+    <div class="card home-wrap">
+      <div class="logo" style="justify-content:flex-start">
+        <div class="mark">CL</div>
+        <div style="text-align:left">
+          <h1 id="welcomeTitle">Bienvenue</h1>
+          <div class="lead" id="subText">Chargement…</div>
+        </div>
+      </div>
 
-  <!-- Firebase Logout -->
+      <div style="margin-top:18px; text-align:center">
+        <button class="btn" id="dashboardBtn">Accéder au tableau de la classe</button>
+        <button class="btn secondary" id="logoutBtn" style="margin-left:10px">Se déconnecter</button>
+      </div>
+
+      <div id="infoMsg" class="message" style="display:none; margin-top:14px"></div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
@@ -33,12 +58,39 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    function logout() {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
-      });
+    const welcomeTitle = document.getElementById('welcomeTitle');
+    const subText = document.getElementById('subText');
+    const infoMsg = document.getElementById('infoMsg');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const dashboardBtn = document.getElementById('dashboardBtn');
+
+    function showInfo(text){
+      infoMsg.style.display='block';
+      infoMsg.className='message success';
+      infoMsg.innerText = text;
     }
-    window.logout = logout;
+
+    onAuthStateChanged(auth, user => {
+      if(!user){
+        window.location.href = 'login.html';
+        return;
+      }
+      const name = user.displayName || '';
+      const email = user.email || '';
+      welcomeTitle.innerText = name ? `Bienvenue, ${name} 🎉` : 'Bienvenue 🎉';
+      subText.innerText = `Connecté en tant que ${email}`;
+      showInfo("Tu es connecté. Clique sur 'Se déconnecter' pour quitter.");
+    });
+
+    logoutBtn.addEventListener('click', ()=>{
+      signOut(auth).then(()=> {
+        window.location.href = 'login.html';
+      });
+    });
+
+    dashboardBtn.addEventListener('click', ()=>{
+      alert("Ici tu pourrais ouvrir le tableau de la classe (page à créer).");
+    });
   </script>
 </body>
 </html>
