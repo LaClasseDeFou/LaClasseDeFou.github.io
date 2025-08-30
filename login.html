@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Connexion / Inscription</title>
   <style>
+    /* Style intégré — identique au reste du site */
     :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --accent-dark: #ffb84d; --success: #2ecc71; --danger: #ff6b6b; --card-text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;}
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
     .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
     .card{width:100%; max-width:520px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
-    .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px; justify-content:space-between;}
+    .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px; }
     .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
     h1{margin:0;font-size:20px;color:var(--card-text)}
     .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
@@ -21,44 +22,22 @@
     .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white; box-shadow: 0 8px 22px rgba(102,51,255,0.14);}
     .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--card-text)}
     .small{font-size:13px; padding:8px 10px}
-    .message{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:13px}
+    .message{margin-top:10px; padding:12px; border-radius:8px; font-size:14px}
     .error{ background: rgba(255,107,107,0.12); color:var(--danger); border:1px solid rgba(255,107,107,0.12) }
     .success{ background: rgba(46,204,113,0.08); color:var(--success); border:1px solid rgba(46,204,113,0.06) }
-
-    /* info button - plus visible */
-    .info-btn{
-      width:48px; height:48px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
-      border:2px solid rgba(0,0,0,0.12);
-      background: linear-gradient(180deg, var(--accent), var(--accent-dark));
-      color:#0f1724; cursor:pointer; font-weight:800; font-size:16px;
-      box-shadow: 0 10px 30px rgba(255,183,77,0.18);
-      transition: transform .14s ease, box-shadow .14s ease;
-    }
-    .info-btn:hover{ transform: translateY(-3px); box-shadow: 0 16px 36px rgba(255,183,77,0.26); }
-    .info-btn.pulse{ animation: pulse 2.2s infinite; }
-    @keyframes pulse {
-      0% { box-shadow: 0 10px 30px rgba(255,183,77,0.12); }
-      50% { box-shadow: 0 20px 40px rgba(255,183,77,0.18); }
-      100% { box-shadow: 0 10px 30px rgba(255,183,77,0.12); }
-    }
-
-    .tooltip{margin-top:8px; font-size:13px; color:var(--muted); background: rgba(0,0,0,0.28); padding:8px 10px; border-radius:8px; display:none;}
-    @media (max-width:520px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } .info-btn{ width:44px; height:44px } }
+    .small-link{ background:transparent; border:none; color:var(--muted); cursor:pointer; text-decoration:underline; font-size:13px; padding:0; }
+    .controls { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; justify-content:flex-start; }
+    @media (max-width:520px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card" role="main" aria-labelledby="main-title">
-      <div class="logo">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div class="mark">CL</div>
-          <div>
-            <h1 id="main-title">Connexion / Inscription</h1>
-            <div class="lead">Crée un compte ou connecte-toi pour accéder à la classe.</div>
-          </div>
-        </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <div class="mark">CL</div>
         <div>
-          <button class="info-btn pulse" id="loginInfo" title="Info">i</button>
+          <h1 id="main-title">Connexion / Inscription</h1>
+          <div class="lead">Crée un compte ou connecte-toi pour accéder à la classe.</div>
         </div>
       </div>
 
@@ -72,9 +51,9 @@
           <label for="password">Mot de passe</label>
           <div class="input-row">
             <input id="password" class="input" type="password" placeholder="Ton mot de passe" autocomplete="new-password">
-            <button type="button" class="info-btn" id="pwInfo" title="Conseil mot de passe">i</button>
+            <button type="button" class="btn secondary small" id="pwInfo">i</button>
           </div>
-          <div id="pwTooltip" class="tooltip">Veuillez ne pas utiliser le même mot de passe que vos comptes courants.</div>
+          <div id="pwTooltip" style="display:none; margin-top:8px; color:var(--muted); font-size:13px">Veuillez ne pas utiliser le même mot de passe que vos comptes courants.</div>
         </div>
 
         <div class="field">
@@ -87,13 +66,21 @@
           <input id="lastname" class="input" type="text" placeholder="Nom (optionnel)">
         </div>
 
-        <div class="row-between" style="margin-top:6px">
+        <div style="display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;">
           <button class="btn" id="primaryBtn">Créer un compte</button>
           <button class="btn secondary small" id="toggleBtn">Déjà un compte ?</button>
         </div>
 
         <div id="message" class="message" style="display:none; margin-top:12px"></div>
-        <div id="loginTooltip" class="tooltip" style="margin-top:8px">Un problème ? Contactez Kenzo.S</div>
+
+        <!-- éléments qui seront affichés quand vérification en attente -->
+        <div id="verifyControls" style="display:none; margin-top:10px;">
+          <div class="controls">
+            <button id="resendBtn" class="btn secondary small">Renvoyer l'email</button>
+            <button id="checkedBtn" class="btn small">C'est fait</button>
+            <button id="cancelCheck" class="btn secondary small">Annuler</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -123,6 +110,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // DOM
     const emailEl = document.getElementById('email');
     const pwEl = document.getElementById('password');
     const pseudoEl = document.getElementById('pseudo');
@@ -132,17 +120,23 @@
     const message = document.getElementById('message');
     const pwInfo = document.getElementById('pwInfo');
     const pwTooltip = document.getElementById('pwTooltip');
-    const infoBtn = document.getElementById('loginInfo');
-    const infoTooltip = document.getElementById('loginTooltip');
+
+    const verifyControls = document.getElementById('verifyControls');
+    const resendBtn = document.getElementById('resendBtn');
+    const checkedBtn = document.getElementById('checkedBtn');
+    const cancelCheck = document.getElementById('cancelCheck');
 
     let isLogin = false;
+    let checkInterval = null;
 
-    function showMessage(text, type='error') {
+    function showMessage(text, type='error', withControls=false){
       message.style.display = 'block';
       message.className = 'message ' + (type === 'error' ? 'error' : 'success');
-      message.innerText = text;
+      message.innerHTML = text;
+      // show verify controls if asked
+      verifyControls.style.display = withControls ? 'block' : 'none';
     }
-    function clearMessage(){ message.style.display='none'; message.innerText=''; }
+    function clearMessage(){ message.style.display='none'; message.innerText=''; verifyControls.style.display='none'; }
 
     function friendlyError(err){
       if(!err) return "Une erreur est survenue.";
@@ -168,6 +162,33 @@
       }
     }
 
+    function startVerificationPolling(user){
+      // évite plusieurs intervalles
+      stopVerificationPolling();
+      checkInterval = setInterval(async ()=>{
+        try {
+          if(!auth.currentUser) return;
+          await auth.currentUser.reload();
+          if(auth.currentUser.emailVerified){
+            stopVerificationPolling();
+            showMessage("Email vérifié ✅ — redirection vers la page d'accueil…", 'success', false);
+            setTimeout(()=> window.location.href = 'home.html', 700);
+          }
+        } catch(e){
+          // ignore petites erreurs
+          console.error('reload error', e);
+        }
+      }, 3000);
+    }
+
+    function stopVerificationPolling(){
+      if(checkInterval){
+        clearInterval(checkInterval);
+        checkInterval = null;
+      }
+    }
+
+    // toggle form mode
     function toggleMode(){
       isLogin = !isLogin;
       primaryBtn.textContent = isLogin ? 'Se connecter' : "Créer un compte";
@@ -179,10 +200,8 @@
     pwInfo.addEventListener('click', ()=>{
       pwTooltip.style.display = pwTooltip.style.display === 'block' ? 'none' : 'block';
     });
-    infoBtn.addEventListener('click', ()=>{
-      infoTooltip.style.display = infoTooltip.style.display === 'block' ? 'none' : 'block';
-    });
 
+    // create or login
     primaryBtn.addEventListener('click', async ()=>{
       clearMessage();
       const email = (emailEl.value||'').trim();
@@ -205,23 +224,37 @@
 
       try {
         if(isLogin){
+          // connexion
           const cred = await signInWithEmailAndPassword(auth, email, pw);
           const user = cred.user;
           if(!user.emailVerified){
-            showMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail puis reconnecte-toi.", 'error');
-            await signOut(auth);
+            // ne déconnecte pas : on propose options pour renvoyer le mail / vérifier
+            showMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail puis clique sur « C'est fait ».", 'error', true);
+            // start polling in case they verify in another tab/device
+            startVerificationPolling(user);
             return;
           }
+          // si vérifié, redirection se fera via onAuthStateChanged (ci-dessous) ou directement:
+          window.location.href = 'home.html';
         } else {
+          // inscription
           const cred = await createUserWithEmailAndPassword(auth, email, pw);
           const user = cred.user;
           const display = pseudo || lastname ? ((pseudo ? pseudo : '') + (pseudo && lastname ? ' ' : '') + (lastname ? lastname : '')) : null;
           if(display){
             await updateProfile(user, { displayName: display });
           }
+          // envoi de l'email
           await sendEmailVerification(user);
-          showMessage("Email de confirmation envoyé. Vérifie ta boîte mail pour activer ton compte.", 'success');
-          setTimeout(async ()=> { try{ await signOut(auth); } catch(e){} }, 300);
+          // message clair + contrôles (renvoyer / c'est fait)
+          showMessage(
+            `Email de confirmation envoyé à <strong>${email}</strong>. Vérifie ta boîte mail (spam aussi). Quand tu as cliqué sur le lien, clique sur « C'est fait » — ou la page redirigera automatiquement.`,
+            'success',
+            true
+          );
+          // start polling pour détecter la vérif automatiquement
+          startVerificationPolling(user);
+          // on ne déconnecte pas : on laisse l'utilisateur connecté mais protégé tant que emailVerified == false
           return;
         }
       } catch(err){
@@ -232,20 +265,66 @@
       }
     });
 
-    onAuthStateChanged(auth, user => {
-      if(user){
-        if(user.emailVerified){
-          setTimeout(()=> window.location.href = 'home.html', 250);
+    // bouton "Renvoyer l'email"
+    resendBtn.addEventListener('click', async ()=>{
+      clearMessage();
+      if(!auth.currentUser){
+        showMessage("Impossible : reconnecte-toi d'abord puis renvoie l'email.", 'error');
+        return;
+      }
+      try{
+        await sendEmailVerification(auth.currentUser);
+        showMessage("Email de vérification renvoyé. Vérifie ta boîte mail.", 'success', true);
+      }catch(e){
+        showMessage("Erreur lors de l'envoi. Réessaie plus tard.", 'error', true);
+      }
+    });
+
+    // bouton "C'est fait" — force reload et vérif
+    checkedBtn.addEventListener('click', async ()=>{
+      clearMessage();
+      if(!auth.currentUser){
+        showMessage("Tu n'es pas connecté. Connecte-toi avec ton email et mot de passe.", 'error');
+        return;
+      }
+      try{
+        await auth.currentUser.reload();
+        if(auth.currentUser.emailVerified){
+          stopVerificationPolling();
+          showMessage("Email vérifié ✅ — redirection vers la page d'accueil…", 'success', false);
+          setTimeout(()=> window.location.href = 'home.html', 600);
         } else {
-          showMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail pour activer ton compte.", 'error');
-          setTimeout(async ()=> { try{ await signOut(auth); }catch(e){} }, 400);
+          showMessage("Toujours pas vérifié. Vérifie le lien reçu par mail puis réessaie.", 'error', true);
+        }
+      }catch(e){
+        showMessage("Erreur lors de la vérification. Réessaie.", 'error', true);
+      }
+    });
+
+    cancelCheck.addEventListener('click', ()=>{
+      stopVerificationPolling();
+      clearMessage();
+    });
+
+    // redirection si déjà connecté *et* vérifié
+    onAuthStateChanged(auth, user => {
+      if(user && user.emailVerified){
+        // si connecté et vérifié -> home
+        window.location.href = 'home.html';
+      } else {
+        // si connecté mais non vérifié, propose les contrôles (cas où l'user revient connecté)
+        if(user && !user.emailVerified){
+          showMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail puis clique sur « C'est fait ».", 'error', true);
+          startVerificationPolling(user);
         }
       }
     });
 
+    // enter pour soumettre
     [emailEl, pwEl, pseudoEl, lastnameEl].forEach(el=>{
       el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') primaryBtn.click(); });
     });
+
   </script>
 </body>
 </html>
