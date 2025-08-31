@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Classe</title>
+  <style>
+    :root{ --bg:linear-gradient(135deg,#6a11cb,#2575fc); --muted:#cbd5f6; }
+    body{margin:0;font-family:Inter,Arial;background:var(--bg);color:white}
+    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .card{width:100%;max-width:860px;background:rgba(255,255,255,0.04);padding:18px;border-radius:12px}
+    h1{margin:0 0 10px 0}
+    .members{margin-top:12px;background:rgba(0,0,0,0.08);padding:12px;border-radius:10px;min-height:80px}
+    .btn{padding:8px 10px;border-radius:8px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);color:white;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 id="title">Classe</h1>
+      <div id="subtitle" style="color:var(--muted)">Chargement…</div>
+
+      <div style="margin-top:14px">
+        <button class="btn" id="openChat">Ouvrir le chat de cette classe</button>
+        <button class="btn" id="back" style="background:transparent;border:1px solid rgba(255,255,255,0.06);margin-left:8px">Retour tableau</button>
+      </div>
+
+      <div class="members" id="membersList">
+        Membres — chargement...
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+      authDomain: "laclassedefou.firebaseapp.com",
+      projectId: "laclassedefou",
+      storageBucket: "laclassedefou.firebasestorage.app",
+      messagingSenderId: "625518146786",
+      appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+      measurementId: "G-DP9HJXJGTC"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    function qs(name){ return new URLSearchParams(location.search).get(name); }
+    const classe = qs('class');
+    document.getElementById('title').innerText = classe ? `Classe ${classe}` : 'Classe inconnue';
+    document.getElementById('subtitle').innerText = classe ? `Page pour la classe ${classe}` : 'Aucune classe sélectionnée';
+
+    document.getElementById('back').addEventListener('click', ()=> window.location.href='tableau.html');
+    document.getElementById('openChat').addEventListener('click', ()=> window.location.href = 'general.html');
+
+    // show members (users collection filtered by classe)
+    (async ()=>{
+      if(!classe){ document.getElementById('membersList').innerText = 'Aucune classe fournie'; return; }
+      try{
+        const q = query(collection(db,'users'), where('classe','==',classe));
+        const snap = await getDocs(q);
+        const list = [];
+        snap.forEach(d => { const data = d.data(); list.push(data.pseudo || data.displayName || data.email); });
+        const box = document.getElementById('membersList');
+        if(list.length === 0) box.innerText = 'Aucun membre trouvé pour cette classe.';
+        else {
+          box.innerHTML = '<strong>Membres :</strong><ul>' + list.map(n => `<li>${n}</li>`).join('') + '</ul>';
+        }
+      }catch(e){
+        console.error(e);
+        document.getElementById('membersList').innerText = 'Erreur en chargeant les membres.';
+      }
+    })();
+  </script>
+</body>
+</html>
