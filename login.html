@@ -1,349 +1,193 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Connexion / Inscription</title>
-  <style>
-    :root{
-      --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%);
-      --accent: #ffd369;
-      --accent-dark: #ffb84d;
-      --success: #2ecc71;
-      --danger: #ff6b6b;
-      --card-text: #eef2ff;
-      --muted: rgba(238,242,255,0.75);
-      --radius: 14px;
-      --shadow: 0 8px 30px rgba(2,6,23,0.45);
-      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
-    .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
-    .card{width:100%; max-width:520px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
-    .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px; justify-content:space-between;}
-    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
-    h1{margin:0;font-size:20px;color:var(--card-text)}
-    .lead{margin:6px 0 14px;color:var(--muted); font-size:14px}
-    .field{margin-bottom:12px}
-    label{display:block;font-size:13px;color:var(--muted); margin-bottom:6px}
-    .input-row{display:flex; gap:8px; align-items:center}
-    .input {width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background: rgba(10,14,30,0.2); color:var(--card-text); font-size:14px; outline:none}
-    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white; box-shadow: 0 8px 22px rgba(102,51,255,0.14);}
-    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--card-text)}
-    .small{font-size:13px; padding:8px 10px}
-    .message{margin-top:10px; padding:12px; border-radius:8px; font-size:14px}
-    .error{ background: rgba(255,107,107,0.12); color:var(--danger); border:1px solid rgba(255,107,107,0.12) }
-    .success{ background: rgba(46,204,113,0.08); color:var(--success); border:1px solid rgba(46,204,113,0.06) }
-    .info-btn{
-      width:48px; height:48px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
-      border:2px solid rgba(0,0,0,0.12); background: linear-gradient(180deg, var(--accent), var(--accent-dark));
-      color:#0f1724; cursor:pointer; font-weight:800; font-size:16px; box-shadow: 0 10px 30px rgba(255,183,77,0.18);
-    }
-    .info-btn.pulse{ animation: pulse 2.2s infinite; }
-    @keyframes pulse {
-      0% { box-shadow: 0 10px 30px rgba(255,183,77,0.12); }
-      50% { box-shadow: 0 20px 40px rgba(255,183,77,0.18); }
-      100% { box-shadow: 0 10px 30px rgba(255,183,77,0.12); }
-    }
-    .tooltip{margin-top:8px; font-size:13px; color:var(--muted); background: rgba(0,0,0,0.28); padding:8px 10px; border-radius:8px; display:none;}
-    .controls { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; justify-content:flex-start; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Connexion / Inscription</title>
+<style>
+  :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent:#ffd369; --accent-dark:#ffb84d; --card-text:#eef2ff; --muted:rgba(238,242,255,0.75); --radius:14px; --shadow:0 8px 30px rgba(2,6,23,0.45); font-family:Inter,Arial;}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
+  .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
+  .card{width:100%; max-width:520px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); }
+  .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,#ffd369,#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724;}
+  .input{width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background: rgba(10,14,30,0.2); color:var(--card-text); margin-top:6px}
+  .btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);color:white;cursor:pointer;margin-top:10px}
+  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+  .message{margin-top:12px;padding:10px;border-radius:8px}
+  .success{background:rgba(46,204,113,0.08);color:#b9f6ca}
+  .error{background:rgba(255,107,107,0.12);color:#ffb4b4}
+  .info-btn{width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#ffd369,#ffb84d);color:#0f1724;font-weight:800;border:2px solid rgba(0,0,0,0.12);cursor:pointer}
+</style>
 </head>
 <body>
   <div class="container">
-    <div class="card" role="main" aria-labelledby="main-title">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
-        <div class="mark">CL</div>
-        <div>
-          <h1 id="main-title">Connexion / Inscription</h1>
-          <div class="lead">Crée un compte ou connecte-toi pour accéder à la classe.</div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="mark">CL</div>
+          <div>
+            <h2>Connexion / Inscription</h2>
+            <div style="color:var(--muted)">Crée un compte ou connecte-toi pour accéder à la classe.</div>
+          </div>
         </div>
-        <!-- info button (identique à index) -->
-        <div>
-          <button class="info-btn pulse" id="loginInfo" title="Info">i</button>
-        </div>
+        <div><button id="loginInfo" class="info-btn">i</button></div>
       </div>
 
-      <div id="formArea">
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" class="input" type="email" placeholder="ex: toto@mail.com" autocomplete="email">
+      <div style="margin-top:12px">
+        <input id="email" class="input" type="email" placeholder="Email">
+        <div style="margin-top:10px">
+          <input id="password" class="input" type="password" placeholder="Mot de passe">
         </div>
 
-        <div class="field">
-          <label for="password">Mot de passe</label>
-          <div class="input-row">
-            <input id="password" class="input" type="password" placeholder="Ton mot de passe" autocomplete="current-password">
-            <button type="button" class="btn secondary small" id="pwInfo">i</button>
-          </div>
-          <div id="pwTooltip" style="display:none; margin-top:8px; color:var(--muted); font-size:13px">Veuillez ne pas utiliser le même mot de passe que vos comptes courants.</div>
+        <div style="margin-top:10px">
+          <input id="pseudo" class="input" type="text" placeholder="Pseudo (obligatoire à l'inscription)">
         </div>
 
-        <div class="field">
-          <label for="pseudo">Pseudo <span style="color:var(--muted);font-weight:500">(obligatoire à l'inscription)</span></label>
-          <input id="pseudo" class="input" type="text" placeholder="Ton pseudo (ex: Léo)">
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button id="primaryBtn" class="btn">Créer un compte</button>
+          <button id="toggleBtn" class="btn secondary">Déjà un compte ?</button>
         </div>
 
-        <div class="field">
-          <label for="lastname">Nom de famille <span style="color:var(--muted);font-weight:500">(optionnel)</span></label>
-          <input id="lastname" class="input" type="text" placeholder="Nom (optionnel)">
-        </div>
+        <div id="message" class="message" style="display:none"></div>
 
-        <div class="field">
-          <label for="classeSelect">Classe</label>
-          <select id="classeSelect" class="input" aria-label="Choisir la classe">
-            <option value="">-- Choisir ta classe --</option>
-            <option>6A</option><option>6B</option><option>6C</option><option>6D</option><option>6E</option>
-            <option>5A</option><option>5B</option><option>4A</option><option>3E</option><option>3A</option>
-          </select>
-          <div style="font-size:13px;color:var(--muted);margin-top:6px">Tu peux sélectionner ta classe ici (utilisé pour le chat & le tableau).</div>
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;">
-          <button class="btn" id="primaryBtn">Créer un compte</button>
-          <button class="btn secondary small" id="toggleBtn">Déjà un compte ?</button>
-        </div>
-
-        <div id="message" class="message" style="display:none; margin-top:12px"></div>
-
-        <div id="verifyControls" style="display:none; margin-top:10px;">
-          <div class="controls">
-            <button id="resendBtn" class="btn secondary small">Renvoyer l'email</button>
-            <button id="checkedBtn" class="btn small">C'est fait</button>
-            <button id="cancelCheck" class="btn secondary small">Annuler</button>
-          </div>
+        <div id="verifyControls" style="display:none; margin-top:8px">
+          <button id="resendBtn" class="btn secondary">Renvoyer l'email</button>
+          <button id="checkedBtn" class="btn">C'est fait</button>
+          <button id="cancelCheck" class="btn secondary">Annuler</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      onAuthStateChanged,
-      updateProfile,
-      sendEmailVerification,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc,
-      updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
-      authDomain: "laclassedefou.firebaseapp.com",
-      projectId: "laclassedefou",
-      storageBucket: "laclassedefou.firebasestorage.app",
-      messagingSenderId: "625518146786",
-      appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
-      measurementId: "G-DP9HJXJGTC"
+const firebaseConfig = {
+  apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+  authDomain: "laclassedefou.firebaseapp.com",
+  projectId: "laclassedefou",
+  storageBucket: "laclassedefou.firebasestorage.app",
+  messagingSenderId: "625518146786",
+  appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+  measurementId: "G-DP9HJXJGTC"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const emailEl = document.getElementById('email');
+const pwEl = document.getElementById('password');
+const pseudoEl = document.getElementById('pseudo');
+const primaryBtn = document.getElementById('primaryBtn');
+const toggleBtn = document.getElementById('toggleBtn');
+const msgEl = document.getElementById('message');
+const resendBtn = document.getElementById('resendBtn');
+const checkedBtn = document.getElementById('checkedBtn');
+const cancelCheck = document.getElementById('cancelCheck');
+const verifyControls = document.getElementById('verifyControls');
+const infoBtn = document.getElementById('loginInfo');
+
+let isLogin = false;
+let poll = null;
+
+function show(text, type='error', withControls=false){
+  msgEl.style.display='block';
+  msgEl.className = 'message ' + (type === 'error' ? 'error' : 'success');
+  msgEl.innerText = text;
+  verifyControls.style.display = withControls ? 'block' : 'none';
+}
+function clearMsg(){ msgEl.style.display='none'; verifyControls.style.display='none'; }
+
+infoBtn.addEventListener('click', ()=> alert("Veuillez entrer la clé de sécurité que Kenzo.S vous a donnée."));
+
+toggleBtn.addEventListener('click', ()=>{
+  isLogin = !isLogin;
+  primaryBtn.innerText = isLogin ? 'Se connecter' : 'Créer un compte';
+  toggleBtn.innerText = isLogin ? 'Pas encore de compte ?' : 'Déjà un compte ?';
+  clearMsg();
+});
+
+primaryBtn.addEventListener('click', async ()=>{
+  clearMsg();
+  const email = (emailEl.value||'').trim();
+  const pw = pwEl.value || '';
+  const pseudo = (pseudoEl.value||'').trim();
+
+  if(!email || !pw){ show('Email et mot de passe requis.', 'error'); return; }
+  if(!isLogin && !pseudo){ show('Le pseudo est obligatoire à l\'inscription.', 'error'); return; }
+
+  primaryBtn.disabled = true;
+  try{
+    if(isLogin){
+      const cred = await signInWithEmailAndPassword(auth, email, pw);
+      if(!cred.user.emailVerified){
+        show('Email de confirmation envoyé. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur "C\\'est fait".', 'error', true);
+        startPolling();
+        return;
+      }
+      window.location.href = 'home.html';
+    } else {
+      const cred = await createUserWithEmailAndPassword(auth, email, pw);
+      const user = cred.user;
+      await updateProfile(user, { displayName: pseudo });
+      await setDoc(doc(db,'users',user.uid), { pseudo: pseudo, lastname: '', email: email }, { merge: true });
+      await sendEmailVerification(user);
+      show(`Email de confirmation envoyé à ${email}. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur "C\\'est fait".`, 'success', true);
+      startPolling();
+      return;
+    }
+  }catch(e){
+    const code = e.code || '';
+    const map = {
+      'auth/email-already-in-use': "Cet email est déjà utilisé.",
+      'auth/invalid-email': "Adresse email invalide.",
+      'auth/weak-password': "Mot de passe trop faible (6+ caractères).",
+      'auth/user-not-found': "Aucun compte trouvé.",
+      'auth/wrong-password': "Mot de passe incorrect.",
+      'auth/too-many-requests': "Trop de tentatives, réessaie plus tard."
     };
+    show(map[code] || (e.message || 'Erreur.'), 'error');
+  } finally { primaryBtn.disabled = false; }
+});
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // DOM
-    const emailEl = document.getElementById('email');
-    const pwEl = document.getElementById('password');
-    const pseudoEl = document.getElementById('pseudo');
-    const lastnameEl = document.getElementById('lastname');
-    const classeEl = document.getElementById('classeSelect');
-    const primaryBtn = document.getElementById('primaryBtn');
-    const toggleBtn = document.getElementById('toggleBtn');
-    const message = document.getElementById('message');
-    const pwInfo = document.getElementById('pwInfo');
-    const pwTooltip = document.getElementById('pwTooltip');
-    const infoBtn = document.getElementById('loginInfo');
-
-    const verifyControls = document.getElementById('verifyControls');
-    const resendBtn = document.getElementById('resendBtn');
-    const checkedBtn = document.getElementById('checkedBtn');
-    const cancelCheck = document.getElementById('cancelCheck');
-
-    let isLogin = false;
-    let checkInterval = null;
-
-    function showMessage(text, type='error', withControls=false){
-      message.style.display = 'block';
-      message.className = 'message ' + (type === 'error' ? 'error' : 'success');
-      message.innerHTML = text;
-      verifyControls.style.display = withControls ? 'block' : 'none';
+function startPolling(){
+  stopPolling();
+  poll = setInterval(async ()=>{
+    if(!auth.currentUser) return;
+    await auth.currentUser.reload();
+    if(auth.currentUser.emailVerified){
+      stopPolling();
+      show('Email vérifié ✅ — redirection…', 'success');
+      setTimeout(()=> window.location.href = 'home.html', 700);
     }
-    function clearMessage(){ message.style.display='none'; message.innerText=''; verifyControls.style.display='none'; }
+  }, 3000);
+}
+function stopPolling(){ if(poll){ clearInterval(poll); poll = null; } }
 
-    function friendlyError(err){
-      if(!err) return "Une erreur est survenue.";
-      const code = err.code || '';
-      switch(code){
-        case 'auth/email-already-in-use':
-          return "Cet email est déjà utilisé. Essaie de te connecter ou utilise un autre email.";
-        case 'auth/invalid-email':
-          return "Adresse email invalide.";
-        case 'auth/weak-password':
-          return "Mot de passe trop faible. Utilise au moins 6 caractères.";
-        case 'auth/user-not-found':
-          return "Aucun compte trouvé avec cet email.";
-        case 'auth/wrong-password':
-          return "Mot de passe incorrect. Vérifie et réessaie.";
-        case 'auth/too-many-requests':
-          return "Trop de tentatives. Réessaie dans quelques minutes.";
-        case 'auth/operation-not-allowed':
-          return "Connexion non autorisée. Contacte l'administrateur.";
-        default:
-          const msg = err.message || String(err);
-          return msg.replace(/^Firebase:\s*/i, '').replace(/\s*\(auth\/[^\)]+\)\.?/i,'').trim() || "Une erreur est survenue.";
-      }
-    }
+resendBtn.addEventListener('click', async ()=> {
+  if(!auth.currentUser) { show('Reconnecte-toi puis renvoie l\\'email.', 'error'); return; }
+  try{ await sendEmailVerification(auth.currentUser); show('Email renvoyé.', 'success', true); } catch(e){ show('Erreur en renvoyant.', 'error', true); }
+});
+checkedBtn.addEventListener('click', async ()=> {
+  if(!auth.currentUser){ show('Tu n\\'es pas connecté.', 'error'); return; }
+  await auth.currentUser.reload();
+  if(auth.currentUser.emailVerified){ stopPolling(); show('Email vérifié ✅ — redirection…', 'success'); setTimeout(()=> window.location.href='home.html',600); }
+  else show('Toujours pas vérifié. Vérifie le lien reçu par mail puis réessaie.', 'error', true);
+});
+cancelCheck.addEventListener('click', ()=> { stopPolling(); clearMsg(); });
 
-    function startVerificationPolling(){
-      stopVerificationPolling();
-      checkInterval = setInterval(async ()=>{
-        try {
-          if(!auth.currentUser) return;
-          await auth.currentUser.reload();
-          if(auth.currentUser.emailVerified){
-            stopVerificationPolling();
-            showMessage("Email vérifié ✅ — redirection…", 'success', false);
-            setTimeout(()=> window.location.href = 'home.html', 700);
-          }
-        } catch(e){
-          console.error('reload error', e);
-        }
-      }, 3000);
-    }
-    function stopVerificationPolling(){
-      if(checkInterval){ clearInterval(checkInterval); checkInterval = null; }
-    }
+onAuthStateChanged(auth, async user => {
+  if(user){
+    await user.reload();
+    if(user.emailVerified) window.location.href = 'home.html';
+    else show('Ton email n\\'est pas vérifié. Vérifie ta boîte mail puis clique sur "C\\'est fait".', 'error', true);
+  }
+});
 
-    toggleBtn.addEventListener('click', ()=>{
-      isLogin = !isLogin;
-      primaryBtn.textContent = isLogin ? 'Se connecter' : "Créer un compte";
-      toggleBtn.textContent = isLogin ? "Pas encore de compte ?" : "Déjà un compte ?";
-      clearMessage();
-    });
-
-    pwInfo.addEventListener('click', ()=> pwTooltip.style.display = pwTooltip.style.display === 'block' ? 'none' : 'block');
-    infoBtn.addEventListener('click', ()=> alert("Un problème ? Contacte Kenzo.S"));
-
-    primaryBtn.addEventListener('click', async ()=>{
-      clearMessage();
-      const email = (emailEl.value||'').trim();
-      const pw = pwEl.value || '';
-      const pseudo = (pseudoEl.value||'').trim();
-      const lastname = (lastnameEl.value||'').trim();
-      const classe = (classeEl.value||'').trim();
-
-      if(!email || !pw){
-        showMessage("Email et mot de passe sont requis.", 'error');
-        return;
-      }
-
-      if(!isLogin && !pseudo){
-        showMessage("Le pseudo est obligatoire à l'inscription.", 'error');
-        return;
-      }
-      if(!isLogin && !classe){
-        showMessage("Choisis ta classe (ex : 6A).", 'error');
-        return;
-      }
-
-      primaryBtn.disabled = true; primaryBtn.style.opacity = 0.8;
-
-      try {
-        if(isLogin){
-          const cred = await signInWithEmailAndPassword(auth, email, pw);
-          const user = cred.user;
-          // if user doc exists, we'll prefer stored class; but if user selected different class, update it
-          const userDoc = await getDoc(doc(db,'users',user.uid));
-          if(userDoc.exists()){
-            const saved = userDoc.data().classe || '';
-            if(!saved && classe) {
-              await setDoc(doc(db,'users',user.uid), { pseudo: user.displayName || '', lastname: '', classe: classe, email: user.email }, { merge:true });
-            } else if (classe && classe !== saved){
-              // update stored class to the one user selected at login
-              await updateDoc(doc(db,'users',user.uid), { classe: classe });
-            }
-          } else {
-            // create minimal users doc if missing
-            await setDoc(doc(db,'users',user.uid), { pseudo: user.displayName || '', lastname: '', classe: classe || '', email: user.email });
-          }
-
-          if(!user.emailVerified){
-            // show short message and controls
-            showMessage("Email de confirmation envoyé. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur \"C'est fait\".", 'error', true);
-            startVerificationPolling();
-            return;
-          }
-          // OK redirect
-          window.location.href = 'home.html';
-        } else {
-          // create account, save profile + class in Firestore, send verification
-          const cred = await createUserWithEmailAndPassword(auth, email, pw);
-          const user = cred.user;
-          const display = pseudo || lastname ? ((pseudo ? pseudo : '') + (pseudo && lastname ? ' ' : '') + (lastname ? lastname : '')) : null;
-          if(display) await updateProfile(user, { displayName: display });
-          // store in Firestore
-          await setDoc(doc(db,'users',user.uid), { pseudo: pseudo, lastname: lastname || '', classe: classe, email: email });
-          await sendEmailVerification(user);
-          showMessage(`Email de confirmation envoyé à ${email}. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur "C'est fait".`, 'success', true);
-          startVerificationPolling();
-          return;
-        }
-      } catch(err){
-        showMessage(friendlyError(err), 'error');
-      } finally {
-        primaryBtn.disabled = false; primaryBtn.style.opacity = 1;
-      }
-    });
-
-    // resend / checked / cancel
-    resendBtn.addEventListener('click', async ()=>{
-      clearMessage();
-      if(!auth.currentUser){ showMessage("Reconnecte-toi puis renvoie l'email.", 'error'); return; }
-      try { await sendEmailVerification(auth.currentUser); showMessage("Email de vérification renvoyé.", 'success', true); } 
-      catch(e){ showMessage("Erreur lors de l'envoi. Réessaie plus tard.", 'error', true); }
-    });
-
-    checkedBtn.addEventListener('click', async ()=>{
-      clearMessage();
-      if(!auth.currentUser){ showMessage("Tu n'es pas connecté. Connecte-toi d'abord.", 'error'); return; }
-      try{
-        await auth.currentUser.reload();
-        if(auth.currentUser.emailVerified){ stopVerificationPolling(); showMessage("Email vérifié ✅ — redirection…", 'success'); setTimeout(()=> window.location.href='home.html',600); }
-        else showMessage("Toujours pas vérifié. Vérifie le lien reçu par mail puis réessaie.", 'error', true);
-      }catch(e){ showMessage("Erreur lors de la vérification. Réessaie.", 'error', true); }
-    });
-
-    cancelCheck.addEventListener('click', ()=> { stopVerificationPolling(); clearMessage(); });
-
-    // redirect if already logged & verified; if logged but not verified, show controls
-    onAuthStateChanged(auth, async user => {
-      if(user){
-        // try to ensure users/{uid} exists
-        try{
-          const udoc = await getDoc(doc(db,'users',user.uid));
-          if(!udoc.exists()){
-            await setDoc(doc(db,'users',user.uid), { pseudo: user.displayName || '', lastname: '', classe: '', email: user.email });
-          }
-        }catch(e){}
-        if(user.emailVerified){ window.location.href = 'home.html'; }
-        else { showMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail puis clique sur \"C'est fait\".", 'error', true); startVerificationPolling(); }
-      }
-    });
-
-    // Enter to submit
-    [emailEl, pwEl, pseudoEl, lastnameEl, classeEl].forEach(el=>{
-      el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') primaryBtn.click(); });
-    });
-  </script>
+[emailEl, pwEl, pseudoEl].forEach(i => i.addEventListener('keydown', e => { if(e.key === 'Enter') primaryBtn.click(); }));
+</script>
 </body>
 </html>
