@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Accueil — Classe</title>
-  <style>
-    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --accent-dark:#ffb84d; --card-text:#eef2ff; --muted:rgba(238,242,255,0.75); --radius:14px; --shadow:0 8px 30px rgba(2,6,23,0.45); }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased;font-family:Inter,Arial}
-    .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
-    .card{width:100%; max-width:720px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
-    .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
-    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px;}
-    .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
-    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white;}
-    .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--card-text)}
-    .info{margin-top:12px;font-size:14px;color:var(--muted)}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Accueil — Classe</title>
+<style>
+  :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent:#ffd369; --card-text:#eef2ff; --muted:rgba(238,242,255,0.75); --radius:14px; --shadow:0 8px 30px rgba(2,6,23,0.45); font-family:Inter,Arial;}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
+  .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
+  .card{width:100%; max-width:720px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); }
+  .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,#ffd369,#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724;}
+  .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white;}
+  .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--card-text)}
+  #adminBtn{display:none;margin-left:8px;background:#ffd369;color:#0f1724;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+</style>
 </head>
 <body>
   <div class="container">
     <div class="card">
-      <div class="logo" style="justify-content:space-between">
+      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
         <div style="display:flex;gap:12px;align-items:center">
           <div class="mark">CL</div>
           <div>
@@ -29,70 +28,68 @@
             <div class="lead" id="subText">Chargement…</div>
           </div>
         </div>
+        <div>
+          <button class="btn" id="chatBtn">Chat général de classe</button>
+          <button class="btn" id="tableauBtn">Tableau des classes</button>
+          <button id="adminBtn">Admin</button>
+          <button class="btn secondary" id="logoutBtn">Se déconnecter</button>
+        </div>
       </div>
-
-      <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
-        <button class="btn" id="chatBtn">Chat général de classe</button>
-        <button class="btn" id="tableauBtn">Tableau des classes</button>
-        <button class="btn secondary" id="logoutBtn">Se déconnecter</button>
-      </div>
-
-      <div id="infoMsg" class="info"></div>
+      <div id="infoMsg" style="margin-top:14px;color:var(--muted)"></div>
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
-      authDomain: "laclassedefou.firebaseapp.com",
-      projectId: "laclassedefou",
-      storageBucket: "laclassedefou.firebasestorage.app",
-      messagingSenderId: "625518146786",
-      appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
-      measurementId: "G-DP9HJXJGTC"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+  authDomain: "laclassedefou.firebaseapp.com",
+  projectId: "laclassedefou",
+  storageBucket: "laclassedefou.firebasestorage.app",
+  messagingSenderId: "625518146786",
+  appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+  measurementId: "G-DP9HJXJGTC"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const welcomeTitle = document.getElementById('welcomeTitle');
+const subText = document.getElementById('subText');
+const infoMsg = document.getElementById('infoMsg');
+const logoutBtn = document.getElementById('logoutBtn');
+const chatBtn = document.getElementById('chatBtn');
+const tableauBtn = document.getElementById('tableauBtn');
+const adminBtn = document.getElementById('adminBtn');
 
-    const welcomeTitle = document.getElementById('welcomeTitle');
-    const subText = document.getElementById('subText');
-    const infoMsg = document.getElementById('infoMsg');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const chatBtn = document.getElementById('chatBtn');
-    const tableauBtn = document.getElementById('tableauBtn');
+onAuthStateChanged(auth, async user => {
+  if(!user){ window.location.href='login.html'; return; }
+  await user.getIdToken(true);
+  if(!user.emailVerified){ await signOut(auth); window.location.href='login.html'; return; }
 
-    onAuthStateChanged(auth, async user => {
-      if(!user){ window.location.href = 'login.html'; return; }
-      if(!user.emailVerified){ await signOut(auth); window.location.href='login.html'; return; }
+  // get class from users doc
+  let classe = '';
+  try {
+    const d = await getDoc(doc(db,'users',user.uid));
+    if(d.exists()) classe = d.data().classe || '';
+  } catch(e){ console.error(e); }
 
-      // get stored class
-      let classe = '';
-      try{
-        const udoc = await getDoc(doc(db,'users', user.uid));
-        if(udoc.exists()){ classe = udoc.data().classe || ''; }
-      }catch(e){ console.error(e); }
+  welcomeTitle.innerText = user.displayName ? `Bienvenue, ${user.displayName}` : 'Bienvenue';
+  subText.innerText = classe ? `Classe : ${classe} — ${user.email}` : user.email;
+  infoMsg.innerText = classe ? `Tu es dans la classe ${classe}.` : "Tu n'as pas de classe affectée.";
 
-      welcomeTitle.innerText = user.displayName ? `Bienvenue, ${user.displayName}` : 'Bienvenue';
-      subText.innerText = classe ? `Classe : ${classe} — ${user.email}` : user.email;
-      infoMsg.innerText = classe ? `Tu es dans la classe ${classe}.` : "Tu n'as pas de classe affectée.";
+  // show admin button if claim admin
+  const token = await user.getIdTokenResult();
+  if(token.claims && token.claims.admin) adminBtn.style.display = 'inline-block';
+});
 
-      // button handlers
-      chatBtn.onclick = () => {
-        // open class chat page (general chat uses user's stored classe)
-        window.location.href = 'general.html';
-      };
-      tableauBtn.onclick = () => { window.location.href = 'tableau.html'; };
-    });
-
-    logoutBtn.addEventListener('click', ()=> {
-      signOut(auth).then(()=> window.location.href = 'login.html');
-    });
-  </script>
+logoutBtn.addEventListener('click', ()=> signOut(auth).then(()=> window.location.href='login.html'));
+chatBtn.addEventListener('click', ()=> window.location.href = 'general.html');
+tableauBtn.addEventListener('click', ()=> window.location.href = 'tableau.html');
+adminBtn.addEventListener('click', ()=> window.location.href = 'admin.html');
+</script>
 </body>
 </html>
