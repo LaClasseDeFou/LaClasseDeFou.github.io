@@ -1,0 +1,5 @@
+# ne pas pousser la clé privée / admin tools
+/admin-tools/
+/laclassedefou-firebase-adminsdk-*.json
+node_modules/
+.DS_Store
