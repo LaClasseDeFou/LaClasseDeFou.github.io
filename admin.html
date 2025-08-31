@@ -38,7 +38,6 @@
       </div>
 
       <div class="grid">
-        <!-- Left: Chat viewer -->
         <div class="col">
           <div class="box">
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
@@ -54,7 +53,6 @@
           </div>
         </div>
 
-        <!-- Right: User search & edit -->
         <div class="col">
           <div class="box">
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
@@ -93,10 +91,9 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
   import {
     getFirestore, collection, query, where, orderBy, onSnapshot,
-    getDocs, doc, updateDoc, deleteDoc, getDoc, addDoc
+    getDocs, doc, updateDoc, deleteDoc, getDoc
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-  // == firebase config (same que tes autres pages) ==
   const firebaseConfig = {
     apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
     authDomain: "laclassedefou.firebaseapp.com",
@@ -129,54 +126,38 @@
 
   let unsubscribeMessages = null;
   let currentClass = '';
-  let selectedUser = null; // { uid, data }
+  let selectedUser = null;
 
-  // protégé : seul admin peut rester ici
   onAuthStateChanged(auth, async user => {
     if(!user) { location.href = 'login.html'; return; }
     await user.getIdToken(true);
     const token = await user.getIdTokenResult();
-    if(!token.claims || !token.claims.admin) {
-      alert('Accès admin requis. Redirection.');
-      location.href = 'home.html';
-      return;
-    }
-    // admin OK, reste sur la page
+    if(!token.claims || !token.claims.admin) { alert('Accès admin requis. Redirection.'); location.href='home.html'; return; }
   });
 
   backBtn.addEventListener('click', ()=> location.href = 'home.html');
   logoutBtn.addEventListener('click', ()=> signOut(auth).then(()=> location.href='login.html'));
 
-  function renderMessages(snapshotDocs, currentUid) {
+  function renderMessages(snapshotDocs) {
     messagesEl.innerHTML = '';
     snapshotDocs.forEach(d => {
       const m = d.data();
       const id = d.id;
       const div = document.createElement('div');
       div.className = 'msg';
-      const meta = document.createElement('div');
-      meta.className = 'meta';
+      const meta = document.createElement('div'); meta.className = 'meta';
       const name = m.displayName || m.pseudo || m.email || 'Anonyme';
       const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
       meta.textContent = `${name} • ${time} • id:${id}`;
-      const body = document.createElement('div');
-      body.textContent = m.text || '(pas de texte)';
-      const actions = document.createElement('div');
-      actions.style.marginTop = '8px';
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'Supprimer';
-      delBtn.className = 'btn btn-light';
+      const body = document.createElement('div'); body.textContent = m.text || '(pas de texte)';
+      const actions = document.createElement('div'); actions.style.marginTop = '8px';
+      const delBtn = document.createElement('button'); delBtn.textContent = 'Supprimer'; delBtn.className = 'btn btn-light';
       delBtn.onclick = async () => {
         if(!confirm('Supprimer ce message ?')) return;
-        try{
-          await deleteDoc(doc(db,'messages',id));
-          // le onSnapshot rafraîchira l'affichage
-        }catch(e){ alert('Erreur suppression'); console.error(e); }
+        try{ await deleteDoc(doc(db,'messages',id)); }catch(e){ alert('Erreur suppression'); console.error(e); }
       };
       actions.appendChild(delBtn);
-      div.appendChild(meta);
-      div.appendChild(body);
-      div.appendChild(actions);
+      div.appendChild(meta); div.appendChild(body); div.appendChild(actions);
       messagesEl.appendChild(div);
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -186,15 +167,11 @@
     const classe = (classSelect.value || '').trim();
     if(!classe){ alert('Choisis une classe'); return; }
     currentClass = classe;
-    // detach prev
     if(unsubscribeMessages) unsubscribeMessages();
     const q = query(collection(db,'messages'), where('classe','==',classe), orderBy('createdAt'));
-    unsubscribeMessages = onSnapshot(q, snap => {
-      renderMessages(snap.docs);
-    });
+    unsubscribeMessages = onSnapshot(q, snap => { renderMessages(snap.docs); });
   });
 
-  // search user by email in users collection
   searchBtn.addEventListener('click', async ()=>{
     const email = (searchEmail.value||'').trim();
     if(!email){ userInfo.innerText = 'Renseigne un email.'; return; }
@@ -210,12 +187,7 @@
       editClasse.value = selectedUser.data.classe || '';
       editArea.style.display = 'block';
       editMsg.innerText = '';
-    }catch(e){
-      console.error(e);
-      userInfo.innerText = 'Erreur lors de la recherche.';
-      selectedUser = null;
-      editArea.style.display='none';
-    }
+    }catch(e){ console.error(e); userInfo.innerText = 'Erreur lors de la recherche.'; selectedUser = null; editArea.style.display='none'; }
   });
 
   saveUser.addEventListener('click', async ()=>{
@@ -226,24 +198,14 @@
     try{
       await updateDoc(doc(db,'users', selectedUser.uid), { pseudo: newPseudo, classe: newClasse });
       editMsg.innerText = 'Modifications enregistrées.';
-    }catch(e){
-      console.error(e);
-      editMsg.innerText = 'Erreur lors de l\'enregistrement.';
-    }
+    }catch(e){ console.error(e); editMsg.innerText = 'Erreur lors de l\\'enregistrement.'; }
   });
 
   deleteUserDoc.addEventListener('click', async ()=>{
     if(!selectedUser) return;
     if(!confirm('Supprimer le document utilisateur (users/{uid}) ? Cela ne supprime pas le compte auth.')) return;
-    try{
-      await deleteDoc(doc(db,'users',selectedUser.uid));
-      userInfo.innerText = 'Document supprimé.';
-      editArea.style.display='none';
-      selectedUser = null;
-    }catch(e){
-      console.error(e);
-      userInfo.innerText = 'Erreur suppression.';
-    }
+    try{ await deleteDoc(doc(db,'users',selectedUser.uid)); userInfo.innerText = 'Document supprimé.'; editArea.style.display='none'; selectedUser = null; }
+    catch(e){ console.error(e); userInfo.innerText = 'Erreur suppression.'; }
   });
 
   refreshBtn.addEventListener('click', ()=> location.reload());
