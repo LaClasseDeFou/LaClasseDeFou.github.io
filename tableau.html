@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tableau des classes</title>
-  <style>
-    :root{ --bg:linear-gradient(135deg,#6a11cb,#2575fc); --muted:#cbd5f6; }
-    body{margin:0;font-family:Inter,Arial;background:var(--bg);color:white}
-    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
-    .card{width:100%;max-width:860px;background:rgba(255,255,255,0.04);padding:18px;border-radius:12px}
-    h1{margin:0 0 10px 0}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-    .classCard{padding:12px;border-radius:10px;background:rgba(0,0,0,0.12);display:flex;flex-direction:column;gap:8px}
-    .btn{padding:8px 10px;border-radius:8px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);color:white;cursor:pointer}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tableau des classes</title>
+<style>
+  :root{ --bg:linear-gradient(135deg,#6a11cb,#2575fc); --muted:#cbd5f6; }
+  body{margin:0;font-family:Inter,Arial;background:var(--bg);color:white}
+  .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+  .card{width:100%;max-width:860px;background:rgba(255,255,255,0.04);padding:18px;border-radius:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .classCard{padding:12px;border-radius:10px;background:rgba(0,0,0,0.12);display:flex;flex-direction:column;gap:8px}
+  .btn{padding:8px 10px;border-radius:8px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);color:white;cursor:pointer}
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -21,33 +20,26 @@
       <h1>Tableau des classes</h1>
       <p style="color:var(--muted)">Choisis une classe pour voir sa page.</p>
 
-      <div class="grid" id="classesGrid">
-        <!-- classes will be injected -->
-      </div>
+      <div class="grid" id="classesGrid"></div>
 
       <div style="margin-top:14px">
-        <button class="btn" id="back">Retour</button>
+        <button class="btn" onclick="location.href='home.html'">Retour</button>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    // simple static list for now; on long term you can keep classes in Firestore
-    const classes = ['6A','6B','6C','6D','6E','5A','5B','4A','3A','3E'];
-    const grid = document.getElementById('classesGrid');
-    classes.forEach(c=>{
-      const card = document.createElement('div');
-      card.className = 'classCard';
-      card.innerHTML = `<strong>${c}</strong><div style="color:rgba(255,255,255,0.7)">Accéder à la page de la classe</div>`;
-      const btn = document.createElement('button');
-      btn.className = 'btn';
-      btn.innerText = "Ouvrir";
-      btn.addEventListener('click', ()=> window.location.href = `classe.html?class=${encodeURIComponent(c)}`);
-      card.appendChild(btn);
-      grid.appendChild(card);
-    });
-
-    document.getElementById('back').addEventListener('click', ()=> window.location.href = 'home.html');
-  </script>
+<script>
+  const classes = ['6A','6B','6C','6D','6E','5A','5B','4A','3A','3E'];
+  const grid = document.getElementById('classesGrid');
+  classes.forEach(c=>{
+    const card = document.createElement('div');
+    card.className = 'classCard';
+    card.innerHTML = `<strong>${c}</strong><div style="color:rgba(255,255,255,0.7)">Accéder à la page de la classe</div>`;
+    const btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = "Ouvrir";
+    btn.addEventListener('click', ()=> window.location.href = `classe.html?class=${encodeURIComponent(c)}`);
+    card.appendChild(btn);
+    grid.appendChild(card);
+  });
+</script>
 </body>
 </html>
