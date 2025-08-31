@@ -5,59 +5,46 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Accueil — Classe</title>
   <style>
-    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --accent-dark: #ffb84d; --success: #2ecc71; --danger: #ff6b6b; --card-text: #eef2ff; --muted: rgba(238,242,255,0.75); --radius: 14px; --shadow: 0 8px 30px rgba(2,6,23,0.45); font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;}
+    :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent: #ffd369; --accent-dark:#ffb84d; --card-text:#eef2ff; --muted:rgba(238,242,255,0.75); --radius:14px; --shadow:0 8px 30px rgba(2,6,23,0.45); }
     *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
+    html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased;font-family:Inter,Arial}
     .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
     .card{width:100%; max-width:720px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); backdrop-filter: blur(6px);}
     .logo{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
-    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);}
+    .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--accent),#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724; font-size:18px;}
     .lead{margin:6px 0 18px;color:var(--muted); font-size:14px}
-    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white; box-shadow: 0 8px 22px rgba(102,51,255,0.14);}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: linear-gradient(90deg,#7f5af0,#6a11cb); color:white;}
     .btn.secondary{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--card-text)}
-    .message{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:13px}
-    .success{ background: rgba(46,204,113,0.08); color:var(--success); border:1px solid rgba(46,204,113,0.06) }
-
-    .info-btn{
-      width:48px; height:48px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
-      border:2px solid rgba(0,0,0,0.12);
-      background: linear-gradient(180deg, var(--accent), var(--accent-dark));
-      color:#0f1724; cursor:pointer; font-weight:800; font-size:16px;
-      box-shadow: 0 10px 30px rgba(255,183,77,0.18);
-    }
-    .info-btn:hover{ transform: translateY(-3px); box-shadow: 0 16px 36px rgba(255,183,77,0.26); }
-
-    @media (max-width:720px){ .card{ padding:20px; border-radius:12px } .mark{ width:44px; height:44px } .info-btn{ width:44px; height:44px } }
+    .info{margin-top:12px;font-size:14px;color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="card home-wrap">
-      <div style="display:flex; align-items:center; justify-content:space-between">
-        <div style="display:flex; align-items:center; gap:12px">
+    <div class="card">
+      <div class="logo" style="justify-content:space-between">
+        <div style="display:flex;gap:12px;align-items:center">
           <div class="mark">CL</div>
-          <div style="text-align:left">
+          <div>
             <h1 id="welcomeTitle">Bienvenue</h1>
             <div class="lead" id="subText">Chargement…</div>
           </div>
         </div>
-        <div>
-          <button class="info-btn" id="homeInfo" title="Contact">i</button>
-        </div>
       </div>
 
-      <div style="margin-top:18px; text-align:center">
-        <button class="btn" id="dashboardBtn">Accéder au tableau de la classe</button>
-        <button class="btn secondary" id="logoutBtn" style="margin-left:10px">Se déconnecter</button>
+      <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
+        <button class="btn" id="chatBtn">Chat général de classe</button>
+        <button class="btn" id="tableauBtn">Tableau des classes</button>
+        <button class="btn secondary" id="logoutBtn">Se déconnecter</button>
       </div>
 
-      <div id="infoMsg" class="message" style="display:none; margin-top:14px"></div>
+      <div id="infoMsg" class="info"></div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
@@ -71,49 +58,40 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const welcomeTitle = document.getElementById('welcomeTitle');
     const subText = document.getElementById('subText');
     const infoMsg = document.getElementById('infoMsg');
     const logoutBtn = document.getElementById('logoutBtn');
-    const dashboardBtn = document.getElementById('dashboardBtn');
-    const homeInfo = document.getElementById('homeInfo');
+    const chatBtn = document.getElementById('chatBtn');
+    const tableauBtn = document.getElementById('tableauBtn');
 
-    function showInfo(text){
-      infoMsg.style.display='block';
-      infoMsg.className='message success';
-      infoMsg.innerText = text;
-    }
+    onAuthStateChanged(auth, async user => {
+      if(!user){ window.location.href = 'login.html'; return; }
+      if(!user.emailVerified){ await signOut(auth); window.location.href='login.html'; return; }
 
-    onAuthStateChanged(auth, user => {
-      if(!user){
-        window.location.href = 'login.html';
-        return;
-      }
-      if(!user.emailVerified){
-        showInfo("Ton email n'est pas vérifié. Retour au login.");
-        setTimeout(()=> { signOut(auth).then(()=> window.location.href = 'login.html'); }, 500);
-        return;
-      }
-      const name = user.displayName || '';
-      const email = user.email || '';
-      welcomeTitle.innerText = name ? `Bienvenue, ${name} 🎉` : 'Bienvenue 🎉';
-      subText.innerText = `Connecté en tant que ${email}`;
-      showInfo("Tu es connecté. Clique sur 'Se déconnecter' pour quitter.");
+      // get stored class
+      let classe = '';
+      try{
+        const udoc = await getDoc(doc(db,'users', user.uid));
+        if(udoc.exists()){ classe = udoc.data().classe || ''; }
+      }catch(e){ console.error(e); }
+
+      welcomeTitle.innerText = user.displayName ? `Bienvenue, ${user.displayName}` : 'Bienvenue';
+      subText.innerText = classe ? `Classe : ${classe} — ${user.email}` : user.email;
+      infoMsg.innerText = classe ? `Tu es dans la classe ${classe}.` : "Tu n'as pas de classe affectée.";
+
+      // button handlers
+      chatBtn.onclick = () => {
+        // open class chat page (general chat uses user's stored classe)
+        window.location.href = 'general.html';
+      };
+      tableauBtn.onclick = () => { window.location.href = 'tableau.html'; };
     });
 
-    homeInfo.addEventListener('click', ()=> {
-      alert("Un problème ? Contactez Kenzo.S");
-    });
-
-    logoutBtn.addEventListener('click', ()=>{
-      signOut(auth).then(()=> {
-        window.location.href = 'login.html';
-      });
-    });
-
-    dashboardBtn.addEventListener('click', ()=>{
-      alert("Ici tu pourrais ouvrir le tableau de la classe (page à créer).");
+    logoutBtn.addEventListener('click', ()=> {
+      signOut(auth).then(()=> window.location.href = 'login.html');
     });
   </script>
 </body>
