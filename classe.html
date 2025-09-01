@@ -5,56 +5,109 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Chat de classe</title>
 <style>
-:root{--bg:linear-gradient(135deg,#6a11cb,#2575fc);--glass:rgba(255,255,255,0.03);--muted:rgba(238,242,255,0.8);--radius:12px;font-family:Inter,Arial,sans-serif}
-body{margin:0;background:var(--bg);color:white}
-.wrap{max-width:1000px;margin:14px auto;padding:12px}
-.card{background:var(--glass);border-radius:12px;padding:12px;min-height:60vh;display:flex;flex-direction:column}
-.messages{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-.msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;position:relative}
-.msg.me{align-self:flex-end;background:linear-gradient(90deg,#7f5af0,#6a11cb)}
-.meta{font-size:12px;color:var(--muted);margin-bottom:6px}
-.composer{display:flex;gap:8px;padding-top:10px}
-.input{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white;font-size:15px}
-.small{color:var(--muted);font-size:13px}
-.report-badge{position:absolute;right:8px;top:8px;background:rgba(255,80,80,0.12);color:#ffb4b4;padding:4px 6px;border-radius:8px;font-size:12px}
+  :root{
+    --bg: linear-gradient(135deg,#6a11cb,#2575fc);
+    --card: rgba(255,255,255,0.04);
+    --muted: rgba(238,242,255,0.8);
+    --accent: #ffd369;
+    --primary: linear-gradient(90deg,#7f5af0,#6a11cb);
+    --radius:12px;
+    font-family: Inter, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--bg);color:#eef2ff;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:18px auto;padding:14px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  h1{margin:0;font-size:20px}
+  .subtitle{color:var(--muted);margin-top:4px;font-size:14px}
+  .card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.04)}
+  .layout{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .left{flex:1;min-width:280px;display:flex;flex-direction:column;gap:12px}
+  .right{width:300px;min-width:240px}
+  .messages{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;border-radius:10px;background:rgba(0,0,0,0.06);min-height:340px}
+  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);position:relative;cursor:pointer}
+  .msg.me{align-self:flex-end;background:var(--primary);color:white}
+  .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .composer{display:flex;gap:8px;align-items:center}
+  .input{flex:1;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+  .btn{padding:10px 14px;border-radius:12px;border:none;background:var(--primary);color:white;font-weight:700;cursor:pointer}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+  .member-list{padding:12px;border-radius:10px;background:rgba(0,0,0,0.06);max-height:420px;overflow:auto}
+  .small{font-size:13px;color:var(--muted)}
+  .report-badge{position:absolute;right:8px;top:8px;background:rgba(255,80,80,0.12);color:#ffb4b4;padding:4px 6px;border-radius:8px;font-size:12px}
+  .notice{padding:10px;border-radius:8px;background:rgba(255,205,87,0.08);color:#fff7e6}
+  @media (max-width:760px){
+    .layout{flex-direction:column}
+    .right{width:100%}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <div><h2 id="classeTitle">Classe</h2><div id="classeSub" class="small"></div></div>
-    <div><button onclick="location.href='home.html'">Accueil</button></div>
-  </div>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Chat de classe</h1>
+        <div id="subtitle" class="subtitle">Chargement…</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="location.href='home.html'" class="btn btn-ghost">Accueil</button>
+        <button id="infoBtn" class="btn btn-ghost">i</button>
+      </div>
+    </div>
 
-  <div class="card">
-    <div id="messages" class="messages"></div>
+    <div class="card">
+      <div class="layout">
+        <div class="left">
+          <div id="welcomeBox" class="small">Chargement du chat…</div>
 
-    <div id="composerWrap" class="composer" style="margin-top:10px">
-      <input id="textInput" class="input" placeholder="Écrire un message..." />
-      <button id="sendBtn" class="btn">Envoyer</button>
+          <div id="messages" class="messages" aria-live="polite"></div>
+
+          <div id="composerWrap" class="composer" style="display:none">
+            <input id="textInput" class="input" placeholder="Écrire un message... (Enter pour envoyer)" />
+            <button id="sendBtn" class="btn">Envoyer</button>
+          </div>
+
+          <div id="viewOnlyNotice" style="display:none" class="notice">
+            Tu n'appartiens pas à cette classe. Tu peux voir les membres mais pas écrire dans le chat.
+          </div>
+        </div>
+
+        <div class="right">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>Membres</strong></div>
+          </div>
+          <div id="members" class="member-list small">Chargement des membres...</div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- report modal identical to general -->
-<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
-  <div style="background:white;color:black;padding:16px;border-radius:10px;min-width:280px">
-    <h3 style="margin-top:0">Signaler le message</h3>
-    <div id="reportMsgPreview" style="margin-bottom:8px;color:#333"></div>
-    <textarea id="reportReason" placeholder="Raison" style="width:100%;height:80px;border-radius:8px;padding:8px"></textarea>
-    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
-      <button id="reportCancel" style="padding:8px 10px;border-radius:8px">Annuler</button>
-      <button id="reportSend" style="padding:8px 10px;border-radius:8px;background:#ff6b6b;color:white">Envoyer</button>
+  <!-- Report modal -->
+  <div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+    <div style="background:white;color:black;padding:16px;border-radius:10px;min-width:320px">
+      <h3 style="margin:0 0 8px 0">Signaler le message</h3>
+      <div id="reportMsgPreview" style="margin-bottom:8px;color:#333"></div>
+      <textarea id="reportReason" placeholder="Raison du signalement" style="width:100%;height:90px;border-radius:8px;padding:8px"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+        <button id="reportCancel" class="btn btn-ghost">Annuler</button>
+        <button id="reportSend" class="btn" style="background:#ff6b6b">Envoyer</button>
+      </div>
     </div>
   </div>
-</div>
 
 <script type="module">
+/* Classe : UX + sécurité côté client
+   - lecture/écriture dans: classes/{CLASS}/messages
+   - fetch users/{uid}.classe si ?class absent
+   - deny writing if user not in class (unless admin)
+   - logs console [DBG CLASS] pour debug
+*/
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import {
   getFirestore, collection, doc, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, getDocs, setDoc, deleteDoc
+  serverTimestamp, getDoc, getDocs, where, orderBy as orderByFn, deleteDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -71,105 +124,213 @@ const auth = getAuth();
 const db = getFirestore();
 
 const messagesEl = document.getElementById('messages');
+const membersEl = document.getElementById('members');
+const subtitleEl = document.getElementById('subtitle');
+const welcomeBox = document.getElementById('welcomeBox');
+const composerWrap = document.getElementById('composerWrap');
+const viewOnlyNotice = document.getElementById('viewOnlyNotice');
+
 const textInput = document.getElementById('textInput');
 const sendBtn = document.getElementById('sendBtn');
-const classeTitle = document.getElementById('classeTitle');
-const classeSub = document.getElementById('classeSub');
+const infoBtn = document.getElementById('infoBtn');
 
-function qs(name){ return new URLSearchParams(location.search).get(name); }
-let classeParam = qs('class') || '';
-classeParam = classeParam ? classeParam.toString() : '';
+const reportModal = document.getElementById('reportModal');
+const reportMsgPreview = document.getElementById('reportMsgPreview');
+const reportReason = document.getElementById('reportReason');
+const reportCancel = document.getElementById('reportCancel');
+const reportSend = document.getElementById('reportSend');
+
+let myUid = null;
+let myName = '';
+let isAdmin = false;
+let classeParam = (new URLSearchParams(location.search)).get('class') || ''; // from URL if present
+let messagesUnsub = null;
+let currentReportTarget = null;
 
 const BLACKLIST = ['connard','merde','putain','sale','nique'];
-function maskBadWords(txt){ let t=txt; BLACKLIST.forEach(w=>{ const rx=new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'); t = t.replace(rx, m=> '#'.repeat(m.length)); }); return t; }
-
-let myUid=null, myName='', isAdmin=false;
-let currentReportTarget=null;
-
-function messagesCollectionRefForClass(cls){
-  // returns the collection reference to classes/{cls}/messages
-  return collection(db,'classes', cls, 'messages');
-}
-
-function subscribeClassMessages(cls){
-  const colRef = messagesCollectionRefForClass(cls);
-  const q = query(colRef, orderBy('createdAt'));
-  onSnapshot(q, snap => {
-    messagesEl.innerHTML = '';
-    snap.forEach(d=>{
-      const m = d.data(); const id = d.id;
-      const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
-      const meta = document.createElement('div'); meta.className = 'meta';
-      const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
-      const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
-      meta.textContent = `${who} • ${time}`;
-      const body = document.createElement('div'); body.textContent = m.text || '';
-      el.appendChild(meta); el.appendChild(body);
-
-      if(m._reported){ const badge=document.createElement('div'); badge.className='report-badge'; badge.textContent='Signalé'; el.appendChild(badge); }
-
-      if(isAdmin){
-        const del=document.createElement('button'); del.textContent='Suppr'; del.style.marginTop='8px';
-        del.onclick = async (ev)=>{ ev.stopPropagation(); if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'classes',cls,'messages',id)); };
-        el.appendChild(del);
-      }
-
-      el.addEventListener('click', ()=>{ currentReportTarget = { id, path: `classes/${cls}/messages/${id}`, data: m }; document.getElementById('reportMsgPreview').textContent = `${who}: ${m.text || ''}`; document.getElementById('reportReason').value=''; document.getElementById('reportModal').style.display='flex'; });
-
-      messagesEl.appendChild(el);
-    });
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }, err => {
-    console.error('class snapshot error', err);
-    messagesEl.innerHTML = '<div style="color:#ff9b9b">Erreur lecture — voir console.</div>';
+function maskBadWords(txt){
+  let t = txt;
+  BLACKLIST.forEach(w=>{
+    const rx = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','gi');
+    t = t.replace(rx, (m)=> '#'.repeat(m.length));
   });
+  return t;
 }
 
+function log(...args){ console.log('[DBG CLASS]', ...args); }
+
+// helper: ref to class messages collection
+function classMessagesRef(cls){
+  return collection(db, 'classes', cls, 'messages');
+}
+
+// subscribe to class messages if allowed
+function subscribeClassMessages(cls){
+  if(messagesUnsub){ /* detach previous if exists */ messagesUnsub(); messagesUnsub = null; }
+  try{
+    const q = query(classMessagesRef(cls), orderBy('createdAt'));
+    messagesUnsub = onSnapshot(q, snap => {
+      log('snapshot size', snap.size);
+      messagesEl.innerHTML = '';
+      snap.forEach(d => {
+        const m = d.data();
+        const id = d.id;
+        const el = document.createElement('div');
+        el.className = 'msg' + (m.uid === myUid ? ' me' : '');
+        const meta = document.createElement('div'); meta.className = 'meta';
+        const who = m.displayName || m.prenom || m.email || 'Anonyme';
+        const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
+        meta.textContent = `${who} • ${time}`;
+        const body = document.createElement('div'); body.textContent = m.text || '';
+        el.appendChild(meta); el.appendChild(body);
+
+        if(m._reported){ const badge = document.createElement('div'); badge.className='report-badge'; badge.textContent='Signalé'; el.appendChild(badge); }
+        // admin delete
+        if(isAdmin){
+          const del = document.createElement('button'); del.textContent='Suppr'; del.style.marginTop='8px'; del.className='btn';
+          del.onclick = async (ev)=>{ ev.stopPropagation(); if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'classes',cls,'messages',id)); };
+          el.appendChild(del);
+        }
+
+        el.addEventListener('click', ()=> {
+          currentReportTarget = { id, path: `classes/${cls}/messages/${id}`, data: m, classe: cls };
+          reportMsgPreview.textContent = `${who}: ${m.text || ''}`;
+          reportReason.value = '';
+          reportModal.style.display = 'flex';
+        });
+
+        messagesEl.appendChild(el);
+      });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, err => {
+      console.error('[DBG CLASS] snapshot error', err);
+      messagesEl.innerHTML = `<div style="color:#ff9b9b">Erreur lecture des messages : ${err.message}</div>`;
+    });
+    log('subscribed to', `classes/${cls}/messages`);
+  }catch(e){ console.error('[DBG CLASS] subscribe failed', e); messagesEl.innerHTML = `<div style="color:#ff9b9b">Erreur subscribe : ${e.message}</div>`; }
+}
+
+// load members list
+async function loadMembers(cls){
+  try{
+    // query users where classe == cls
+    const usersQ = query(collection(db,'users'), where('classe','==', cls), orderByFn('prenom'));
+    const snaps = await getDocs(usersQ);
+    if(snaps.empty){ membersEl.innerHTML = '<div class="small">Aucun membre trouvé</div>'; return; }
+    const list = [];
+    snaps.forEach(d => { const dat = d.data(); list.push(`${dat.prenom || dat.displayName || ''} ${dat.nom || ''}`.trim()); });
+    membersEl.innerHTML = '<ul style="padding-left:16px;margin:0;">' + list.map(n=>`<li>${n || '(anonyme)'}</li>`).join('') + '</ul>';
+  }catch(e){
+    console.error('[DBG CLASS] loadMembers error', e);
+    membersEl.innerHTML = `<div class="small" style="color:#ffb4b4">Impossible de charger les membres (permissions).</div>`;
+  }
+}
+
+// main auth flow
 onAuthStateChanged(auth, async user => {
   if(!user){ location.href='login.html'; return; }
   myUid = user.uid; myName = user.displayName || '';
-  try{ const t = await user.getIdTokenResult(); isAdmin = !!(t.claims && t.claims.admin); }catch(e){}
+  try{ const t = await user.getIdTokenResult(); isAdmin = !!(t.claims && t.claims.admin); }catch(e){ console.warn(e); }
 
+  log('user ready', myUid, 'admin=', isAdmin, 'urlClass=', classeParam);
+
+  // if URL did not provide the class, try fetch from users doc
   if(!classeParam){
-    // try to get from users doc
     try{
-      const uRef = doc(db,'users', myUid);
-      const uSnap = await getDocs(collection(db,'users')); // fallback - but best is getDoc, but keeping imports minimal
-    }catch(e){ console.warn('could not fetch user doc', e); }
-    // If still missing, stop
-    if(!classeParam){ messagesEl.innerHTML = '<div style="color:#ffd369">Aucune classe fournie.</div>'; return; }
+      const userDocRef = doc(db,'users', myUid);
+      const userSnap = await getDoc(userDocRef);
+      if(userSnap.exists()){
+        const u = userSnap.data();
+        classeParam = u.classe || '';
+        log('detected classe from users doc =', classeParam);
+      } else {
+        log('users doc not found for', myUid);
+      }
+    }catch(e){
+      console.error('[DBG CLASS] error fetching users doc', e);
+    }
   }
 
-  classeTitle.textContent = `Classe ${classeParam}`;
-  classeSub.textContent = `Chat privé ${classeParam}`;
+  if(!classeParam){
+    subtitleEl.textContent = 'Aucune classe fournie. Accède au tableau pour choisir.';
+    welcomeBox.textContent = 'Aucune classe détectée.';
+    composerWrap.style.display = 'none';
+    viewOnlyNotice.style.display = 'block';
+    messagesEl.innerHTML = '<div class="small">Impossible d\'afficher le chat sans classe.</div>';
+    membersEl.innerHTML = '<div class="small">Pas de membres.</div>';
+    return;
+  }
 
-  // subscribe to the class-specific messages collection
-  subscribeClassMessages(classeParam);
+  // normalize for display
+  const displayClass = String(classeParam).toUpperCase();
+  subtitleEl.textContent = `Bienvenue dans le chat de ${displayClass}`;
+  welcomeBox.textContent = `Bienvenue dans le chat de ${displayClass} — échange avec ta classe ici.`;
+
+  // fetch user class again to check membership
+  let userClasse = '';
+  try{
+    const userSnap = await getDoc(doc(db,'users', myUid));
+    if(userSnap.exists()) userClasse = (userSnap.data().classe || '').toString().toUpperCase();
+    log('userClasse from users doc =', userClasse);
+  }catch(e){ console.warn('[DBG CLASS] cannot read users doc', e); }
+
+  const targetClasseNorm = displayClass.toString().toUpperCase();
+  const canChat = isAdmin || (userClasse && userClasse === targetClasseNorm);
+  log('canChat?', canChat, 'target=', targetClasseNorm);
+
+  // members always loaded (read rules could block this if you set them strict)
+  loadMembers(displayClass);
+
+  if(!canChat){
+    // view only
+    composerWrap.style.display = 'none';
+    viewOnlyNotice.style.display = 'block';
+    messagesEl.innerHTML = '<div class="small">Tu peux voir les membres mais tu n\'es pas autorisé à écrire dans ce chat.</div>';
+    // still try to subscribe read-only? rules prevent reading if not admin — we won't subscribe to avoid errors
+    return;
+  } else {
+    composerWrap.style.display = 'flex';
+    viewOnlyNotice.style.display = 'none';
+    // subscribe to messages
+    subscribeClassMessages(displayClass);
+  }
 });
 
+// send message (only allowed if user is member — front prevents otherwise)
 async function sendMessage(){
-  const raw = (textInput.value||'').trim(); if(!raw) return;
-  const user = auth.currentUser; if(!user){ alert('Reconnecte-toi'); return; }
-  if(!classeParam){ alert('Classe non définie'); return; }
+  const raw = (textInput.value||'').trim();
+  if(!raw) return;
+  if(!classeParam){ alert('Classe introuvable.'); return; }
+  const user = auth.currentUser;
+  if(!user){ alert('Reconnecte-toi'); return; }
   const text = maskBadWords(raw);
   try{
-    await addDoc(messagesCollectionRefForClass(classeParam), {
-      text, uid: user.uid, displayName: user.displayName || '', email: user.email || '',
+    await addDoc(classMessagesRef(classeParam), {
+      text,
+      uid: user.uid,
+      displayName: user.displayName || '',
+      email: user.email || '',
       createdAt: serverTimestamp()
     });
     textInput.value = '';
-  }catch(e){ console.error('send error', e); alert('Erreur'); }
+  }catch(e){
+    console.error('[DBG CLASS] sendMessage error', e);
+    alert('Erreur lors de l\'envoi : ' + (e.message || e));
+  }
 }
 
 sendBtn.addEventListener('click', sendMessage);
 textInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
 
-// reporting: similar pattern but store messagePath and clase
-document.getElementById('reportCancel').addEventListener('click', ()=> document.getElementById('reportModal').style.display='none');
-document.getElementById('reportSend').addEventListener('click', async ()=>{
-  const reason = (document.getElementById('reportReason').value||'').trim();
+// info button
+infoBtn.addEventListener('click', ()=> alert('Un problème ? Contacte Kenzo.S'));
+
+// reporting handling
+reportCancel.addEventListener('click', ()=> reportModal.style.display='none');
+reportSend.addEventListener('click', async ()=>{
+  const reason = (reportReason.value||'').trim();
   if(!reason){ alert('Donne une raison.'); return; }
-  if(!currentReportTarget){ alert('Aucun message.'); document.getElementById('reportModal').style.display='none'; return; }
+  if(!currentReportTarget){ alert('Aucun message sélectionné.'); reportModal.style.display='none'; return; }
   try{
     await addDoc(collection(db,'reports'), {
       messageId: currentReportTarget.id,
@@ -177,10 +338,20 @@ document.getElementById('reportSend').addEventListener('click', async ()=>{
       message: currentReportTarget.data,
       reporterUid: auth.currentUser.uid,
       reporterEmail: auth.currentUser.email,
-      reason, createdAt: serverTimestamp(),
-      classe: classeParam
+      reason,
+      createdAt: serverTimestamp(),
+      classe: currentReportTarget.classe || classeParam
     });
+    // quick meta flag for badges
     const metaId = currentReportTarget.path.replace(/\//g,'__');
     await setDoc(doc(db,'reports_meta', metaId), { reported: true }, { merge: true });
-    document.getElementById('reportModal').style.display='none';
-    alert('Signalem
+    reportModal.style.display = 'none';
+    alert('Signalement envoyé. Merci.');
+  }catch(e){
+    console.error('[DBG CLASS] report error', e);
+    alert('Erreur lors du signalement.');
+  }
+});
+</script>
+</body>
+</html>
