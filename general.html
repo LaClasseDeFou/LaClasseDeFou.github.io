@@ -9,8 +9,7 @@
     --bg: linear-gradient(135deg,#6a11cb,#2575fc);
     --glass: rgba(255,255,255,0.03);
     --muted: rgba(238,242,255,0.8);
-    --radius:12px;
-    font-family:Inter,Arial,sans-serif;
+    --radius:12px; font-family:Inter,Arial,sans-serif;
   }
   body{margin:0;background:var(--bg);color:white}
   .wrap{max-width:1000px;margin:14px auto;padding:12px}
@@ -18,41 +17,51 @@
   .btn{padding:8px 12px;border-radius:10px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);cursor:pointer;color:white;font-weight:600}
   .card{background:var(--glass);border-radius:12px;padding:12px;margin-top:12px;min-height:60vh;display:flex;flex-direction:column}
   .messages{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03)}
+  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;position:relative}
   .msg.me{align-self:flex-end;background:linear-gradient(90deg,#7f5af0,#6a11cb)}
   .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
   .composer{display:flex;gap:8px;padding-top:10px}
-  .input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white}
+  .input{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,0.25)}
   .small{color:var(--muted);font-size:13px}
-  @media (max-width:600px){
-    .wrap{padding:8px}
-    .card{min-height:60vh}
-  }
+  .reported{outline:2px solid rgba(255,100,100,0.18)}
+  .report-badge{position:absolute;right:8px;top:8px;background:rgba(255,80,80,0.12);color:#ffb4b4;padding:4px 6px;border-radius:8px;font-size:12px}
+  @media (max-width:600px){ .wrap{padding:8px} .card{min-height:60vh} }
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
-      <div><h2 style="margin:0">Chat général</h2><div class="small">Discussion ouverte à toutes les classes</div></div>
-      <div>
-        <button class="btn" onclick="location.href='home.html'">Retour</button>
-      </div>
+      <div><h2 style="margin:0">Chat général</h2><div class="small">Discussion ouverte à tous</div></div>
+      <div><button class="btn" onclick="location.href='home.html'">Retour</button></div>
     </div>
 
     <div class="card">
-      <div id="messages" class="messages"></div>
+      <div id="messages" class="messages" aria-live="polite"></div>
 
       <div class="composer">
-        <input id="text" class="input" placeholder="Écrire un message..." />
+        <input id="text" class="input" placeholder="Écrire un message..." aria-label="Message">
         <button id="send" class="btn">Envoyer</button>
       </div>
     </div>
   </div>
 
+<!-- report modal simple -->
+<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center">
+  <div style="background:white;color:black;padding:16px;border-radius:10px;min-width:280px">
+    <h3 style="margin-top:0">Signaler le message</h3>
+    <div id="reportMsgPreview" style="margin-bottom:8px;color:#333"></div>
+    <textarea id="reportReason" placeholder="Raison du signalement" style="width:100%;height:80px;border-radius:8px;padding:8px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+      <button id="reportCancel" style="padding:8px 10px;border-radius:8px">Annuler</button>
+      <button id="reportSend" style="padding:8px 10px;border-radius:8px;background:#ff6b6b;color:white">Envoyer</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
@@ -71,55 +80,86 @@ const messagesEl = document.getElementById('messages');
 const textEl = document.getElementById('text');
 const sendBtn = document.getElementById('send');
 
+// blacklist (exemples) — tu peux ajouter/éditer
+const BLACKLIST = ['connard','merde','putain','sale','nique']; // mets des mots en minuscules
+function maskBadWords(txt){
+  let t = txt;
+  BLACKLIST.forEach(w=>{
+    const rx = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','gi');
+    t = t.replace(rx, (m)=> '#'.repeat(m.length));
+  });
+  return t;
+}
+
 let myUid = null;
 let myName = '';
 let isAdmin = false;
+
+// report modal elements
+const reportModal = document.getElementById('reportModal');
+const reportMsgPreview = document.getElementById('reportMsgPreview');
+const reportReason = document.getElementById('reportReason');
+const reportCancel = document.getElementById('reportCancel');
+const reportSend = document.getElementById('reportSend');
+
+let lastSnapshot = null; // store for reporting
+let currentReportTarget = null;
 
 onAuthStateChanged(auth, async user => {
   if(!user) { location.href='login.html'; return; }
   myUid = user.uid;
   myName = user.displayName || '';
-  // check admin
-  try{
-    const token = await user.getIdTokenResult();
-    isAdmin = !!(token.claims && token.claims.admin);
-  }catch(e){ console.warn(e); }
 
-  // subscribe to all messages (global chat)
+  try{ const tr = await user.getIdTokenResult(); isAdmin = !!(tr.claims && tr.claims.admin);}catch(e){}
+
   const q = query(collection(db,'messages'), orderBy('createdAt'));
   onSnapshot(q, snap => {
     messagesEl.innerHTML = '';
+    lastSnapshot = snap;
     snap.forEach(d => {
-      const m = d.data();
-      const id = d.id;
-      const div = document.createElement('div');
-      div.className = 'msg' + (m.uid === myUid ? ' me' : '');
+      const m = d.data(); const id = d.id;
+      const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
       const meta = document.createElement('div'); meta.className = 'meta';
       const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
       const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
       meta.textContent = `${who} • ${m.classe || 'Général'} • ${time}`;
       const body = document.createElement('div'); body.textContent = m.text || '';
-      div.appendChild(meta); div.appendChild(body);
-      // admin delete button
+      el.appendChild(meta); el.appendChild(body);
+
+      // mark reported
+      if(m._reported){ el.classList.add('reported'); const badge = document.createElement('div'); badge.className='report-badge'; badge.textContent='Signalé'; el.appendChild(badge); }
+
+      // admin delete button inline
       if(isAdmin){
-        const del = document.createElement('button');
-        del.textContent = 'Suppr';
-        del.style.marginTop = '6px';
-        del.className = 'btn';
-        del.onclick = async ()=>{ if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'messages',id)); };
-        div.appendChild(del);
+        const del = document.createElement('button'); del.textContent='Suppr'; del.style.marginTop='8px'; del.className='btn';
+        del.onclick = async (ev)=>{ ev.stopPropagation(); if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'messages',id)); };
+        el.appendChild(del);
       }
-      messagesEl.appendChild(div);
+
+      // click to report (open modal)
+      el.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        currentReportTarget = { id, data: m };
+        reportMsgPreview.textContent = `${who}: ${m.text || ''}`;
+        reportReason.value = '';
+        reportModal.style.display = 'flex';
+      });
+
+      messagesEl.appendChild(el);
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
   });
 });
 
-sendBtn.addEventListener('click', async ()=>{
-  const text = (textEl.value||'').trim();
-  if(!text) return;
+// send message (global chat)
+async function sendMessage(){
+  const raw = (textEl.value||'').trim();
+  if(!raw) return;
   const user = auth.currentUser;
-  if(!user){ alert('Reconnecte-toi'); return; }
+  if(!user) { alert('Reconnecte-toi'); return; }
+
+  // mask bad words
+  const text = maskBadWords(raw);
   try{
     await addDoc(collection(db,'messages'), {
       text,
@@ -132,9 +172,33 @@ sendBtn.addEventListener('click', async ()=>{
     });
     textEl.value = '';
   }catch(e){ console.error(e); alert('Erreur'); }
-});
+}
 
-textEl.addEventListener('keydown', e => { if(e.key === 'Enter') sendBtn.click(); });
+sendBtn.addEventListener('click', sendMessage);
+textEl.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
+
+// report modal actions
+reportCancel.addEventListener('click', ()=> reportModal.style.display='none');
+reportSend.addEventListener('click', async ()=>{
+  const reason = (reportReason.value||'').trim();
+  if(!reason){ alert('Donne une raison.'); return; }
+  if(!currentReportTarget){ alert('Aucun message sélectionné.'); reportModal.style.display='none'; return; }
+  try{
+    await addDoc(collection(db,'reports'), {
+      messageId: currentReportTarget.id,
+      message: currentReportTarget.data,
+      reporterUid: auth.currentUser.uid,
+      reporterEmail: auth.currentUser.email,
+      reason,
+      createdAt: serverTimestamp(),
+      classe: currentReportTarget.data.classe || ''
+    });
+    // mark message as reported flag (helps show badge) — note: only admin/server side should normally set _reported, but client can set a flag in a separate collection; here we set a small flag document
+    await setDoc(doc(db,'reports_meta', currentReportTarget.id), { reported: true }, { merge: true });
+    reportModal.style.display = 'none';
+    alert('Signalement envoyé. Merci.');
+  }catch(e){ console.error(e); alert('Erreur lors du signalement.'); }
+});
 </script>
 </body>
 </html>
