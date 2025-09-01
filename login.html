@@ -6,280 +6,380 @@
 <title>Connexion / Inscription</title>
 <style>
   :root{
-    --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%);
-    --accent:#ffd369;
-    --card-text:#eef2ff;
-    --muted:rgba(238,242,255,0.75);
-    --radius:14px;
-    --shadow:0 8px 30px rgba(2,6,23,0.45);
-    font-family:Inter,Arial;
+    --bg: linear-gradient(135deg,#6a11cb,#2575fc);
+    --card: rgba(255,255,255,0.04);
+    --muted: rgba(238,242,255,0.75);
+    --accent: #ffd369;
+    --radius: 12px;
+    --shadow: 0 8px 30px rgba(2,6,23,0.45);
+    --text: #eef2ff;
+    font-family: Inter, Arial, sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
-  .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
-  .card{width:100%; max-width:520px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); }
-  .mark{width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,#ffd369,#ff7a7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0f1724;}
-  .input{width:100%; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background: rgba(10,14,30,0.2); color:var(--card-text); margin-top:6px}
-  .btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);color:white;cursor:pointer;margin-top:10px}
-  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06)}
-  .message{margin-top:12px;padding:10px;border-radius:8px}
-  .success{background:rgba(46,204,113,0.08);color:#b9f6ca}
-  .error{background:rgba(255,107,107,0.12);color:#ffb4b4}
-  .info-btn{width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#ffd369,#ffb84d);color:#0f1724;font-weight:800;border:2px solid rgba(0,0,0,0.12);cursor:pointer}
-  small{color:var(--muted)}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+  .card{width:100%;max-width:560px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); padding:20px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.04)}
+  h2{margin:0 0 6px 0}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:12px}
+  .field{margin-bottom:10px}
+  input,select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.12);color:var(--text);font-size:14px}
+  .row{display:flex;gap:8px}
+  .row .half{flex:1}
+  .btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);color:white;cursor:pointer;font-weight:600}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+  .info{width:46px;height:46px;border-radius:50%;background:linear-gradient(180deg,var(--accent),#ffb84d);color:#0f1724;display:inline-flex;align-items:center;justify-content:center;font-weight:800;border:2px solid rgba(0,0,0,0.12);cursor:pointer}
+  .msg{margin-top:12px;padding:10px;border-radius:8px;display:none}
+  .msg.error{background:rgba(255,80,80,0.12);color:#ff6b6b;border:1px solid rgba(255,80,80,0.12)}
+  .msg.success{background:rgba(80,220,120,0.08);color:#b9f6ca;border:1px solid rgba(80,220,120,0.06)}
+  .small{font-size:13px;color:var(--muted)}
+  .forgot{background:transparent;border:none;color:var(--muted);cursor:pointer;text-decoration:underline;padding:0;font-size:13px}
+  label.small{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
 </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card" role="main">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div class="mark">CL</div>
-          <div>
-            <h2>Connexion / Inscription</h2>
-            <div><small>Crée un compte ou connecte-toi pour accéder à la classe.</small></div>
+  <div class="wrap">
+    <div class="card" role="main" aria-labelledby="title">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h2 id="title">Connexion / Inscription</h2>
+          <div class="meta">Crée un compte (avec prénom + classe) ou connecte-toi.</div>
+        </div>
+        <div>
+          <button id="infoBtn" class="info" title="Info">i</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="small" for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="ton@email.fr">
+      </div>
+
+      <div class="field">
+        <label class="small" for="password">Mot de passe</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="Mot de passe">
+      </div>
+
+      <!-- Signup-only fields (shown only en création) -->
+      <div id="signupFields" style="display:none">
+        <div class="row" style="margin-bottom:10px">
+          <div class="half">
+            <label class="small" for="prenom">Prénom (obligatoire)</label>
+            <input id="prenom" type="text" placeholder="Ton prénom">
+          </div>
+          <div class="half">
+            <label class="small" for="nom">Nom (optionnel)</label>
+            <input id="nom" type="text" placeholder="Ton nom (optionnel)">
           </div>
         </div>
-        <div><button id="loginInfo" class="info-btn" aria-label="info">i</button></div>
-      </div>
 
-      <div style="margin-top:12px">
-        <input id="email" class="input" type="email" placeholder="Email" />
-        <div style="margin-top:10px">
-          <input id="password" class="input" type="password" placeholder="Mot de passe" />
-        </div>
-
-        <div style="margin-top:10px">
-          <input id="pseudo" class="input" type="text" placeholder="Pseudo (obligatoire à l'inscription)" />
-        </div>
-
-        <div style="margin-top:8px; display:flex; gap:8px;">
-          <button id="primaryBtn" class="btn">Créer un compte</button>
-          <button id="toggleBtn" class="btn secondary">Déjà un compte ?</button>
-        </div>
-
-        <div id="message" class="message" style="display:none"></div>
-
-        <div id="verifyControls" style="display:none; margin-top:8px">
-          <button id="resendBtn" class="btn secondary">Renvoyer l'email</button>
-          <button id="checkedBtn" class="btn">C'est fait</button>
-          <button id="cancelCheck" class="btn secondary">Annuler</button>
+        <div class="field">
+          <label class="small" for="classe">Classe (obligatoire)</label>
+          <select id="classe" >
+            <option value="">-- Choisir une classe --</option>
+            <!-- 6 -> 3, A..E -->
+            <optgroup label="6ème">
+              <option>6A</option><option>6B</option><option>6C</option><option>6D</option><option>6E</option>
+            </optgroup>
+            <optgroup label="5ème">
+              <option>5A</option><option>5B</option><option>5C</option><option>5D</option><option>5E</option>
+            </optgroup>
+            <optgroup label="4ème">
+              <option>4A</option><option>4B</option><option>4C</option><option>4D</option><option>4E</option>
+            </optgroup>
+            <optgroup label="3ème">
+              <option>3A</option><option>3B</option><option>3C</option><option>3D</option><option>3E</option>
+            </optgroup>
+          </select>
         </div>
       </div>
+
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <button id="primaryBtn" class="btn">Créer un compte</button>
+        <button id="toggleBtn" class="btn ghost">Déjà un compte ?</button>
+        <button id="forgotBtn" class="forgot" style="display:none;margin-left:auto">Mot de passe oublié ?</button>
+      </div>
+
+      <div id="message" class="msg"></div>
+
+      <div id="verifyControls" style="display:none;margin-top:10px">
+        <button id="resendBtn" class="btn ghost">Renvoyer l'email de vérification</button>
+        <button id="checkedBtn" class="btn">C'est fait</button>
+        <button id="cancelCheck" class="btn ghost">Annuler</button>
+      </div>
+
     </div>
   </div>
 
-  <!-- petit handler de TEST (non-module) : permet de vérifier que les boutons réagissent même si Firebase n'arrive pas -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // handlers de test : seront remplacés si Firebase se charge
-      const testPrimary = () => alert('Test : le script se lance. Si tu vois ça, le JS est exécuté.');
-      const testToggle = () => alert('Test : toggle cliqué (mode bascule)');
-      const testInfo = () => alert('Info : Veuillez entrer la clé de sécurité que Kenzo.S vous a donnée.');
+<script type="module">
+/* Login / Signup with:
+   - Prénom required for signup
+   - Nom optional
+   - Classe required for signup (only allowed options)
+   - Forgot password flow
+   - Improved messages
+*/
 
-      const primaryBtn = document.getElementById('primaryBtn');
-      const toggleBtn = document.getElementById('toggleBtn');
-      const infoBtn = document.getElementById('loginInfo');
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  updateProfile,
+  sendEmailVerification,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-      // attacher uniquement si pas d'autre listener (au cas où)
-      primaryBtn.addEventListener('click', testPrimary);
-      toggleBtn.addEventListener('click', testToggle);
-      infoBtn.addEventListener('click', testInfo);
+const firebaseConfig = {
+  apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+  authDomain: "laclassedefou.firebaseapp.com",
+  projectId: "laclassedefou",
+  storageBucket: "laclassedefou.firebasestorage.app",
+  messagingSenderId: "625518146786",
+  appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+  measurementId: "G-DP9HJXJGTC"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-      console.log('[login] test handlers attached — they will be replaced when Firebase module loads.');
-    });
-  </script>
+// DOM
+const emailEl = document.getElementById('email');
+const pwEl = document.getElementById('password');
+const prenomEl = document.getElementById('prenom');
+const nomEl = document.getElementById('nom');
+const classeEl = document.getElementById('classe');
 
-  <!-- logique principale (module) -->
-  <script type="module">
-  (async () => {
-    try {
-      // imports Firebase
-      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js');
-      const authModule = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js');
-      const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js');
+const signupFields = document.getElementById('signupFields');
+const primaryBtn = document.getElementById('primaryBtn');
+const toggleBtn = document.getElementById('toggleBtn');
+const forgotBtn = document.getElementById('forgotBtn');
+const infoBtn = document.getElementById('infoBtn');
 
-      const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged,
-              updateProfile, sendEmailVerification, signOut } = authModule;
-      const { getFirestore, doc, setDoc, getDoc } = firestoreModule;
+const msgEl = document.getElementById('message');
 
-      console.log('[login] firebase modules imported');
+const resendBtn = document.getElementById('resendBtn');
+const checkedBtn = document.getElementById('checkedBtn');
+const cancelCheck = document.getElementById('cancelCheck');
+const verifyControls = document.getElementById('verifyControls');
 
-      // firebase config — SAFE to be public (client-side)
-      const firebaseConfig = {
-        apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
-        authDomain: "laclassedefou.firebaseapp.com",
-        projectId: "laclassedefou",
-        storageBucket: "laclassedefou.firebasestorage.app",
-        messagingSenderId: "625518146786",
-        appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
-        measurementId: "G-DP9HJXJGTC"
-      };
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+let isLogin = false;
+let poll = null;
 
-      // DOM
-      const emailEl = document.getElementById('email');
-      const pwEl = document.getElementById('password');
-      const pseudoEl = document.getElementById('pseudo');
-      let primaryBtn = document.getElementById('primaryBtn');
-      let toggleBtn = document.getElementById('toggleBtn');
-      const msgEl = document.getElementById('message');
-      const resendBtn = document.getElementById('resendBtn');
-      const checkedBtn = document.getElementById('checkedBtn');
-      const cancelCheck = document.getElementById('cancelCheck');
-      const verifyControls = document.getElementById('verifyControls');
-      const infoBtn = document.getElementById('loginInfo');
+function setMessage(text, type='error'){
+  msgEl.style.display = 'block';
+  msgEl.className = 'msg ' + (type === 'error' ? 'error' : 'success');
+  msgEl.textContent = text;
+}
+function clearMessage(){
+  msgEl.style.display = 'none';
+  msgEl.textContent = '';
+  msgEl.className = 'msg';
+}
 
-      // remove previous test listeners by replacing nodes (clean)
-      const replaceNode = id => {
-        const old = document.getElementById(id);
-        if (!old) return null;
-        const copy = old.cloneNode(true);
-        old.parentNode.replaceChild(copy, old);
-        return document.getElementById(id);
-      };
-      primaryBtn = replaceNode('primaryBtn');
-      toggleBtn = replaceNode('toggleBtn');
-      // info button replaced too
-      replaceNode('loginInfo');
+// Allowed classes set (defensive)
+const ALLOWED = new Set([
+  '6A','6B','6C','6D','6E',
+  '5A','5B','5C','5D','5E',
+  '4A','4B','4C','4D','4E',
+  '3A','3B','3C','3D','3E'
+]);
 
-      let isLogin = false;
-      let poll = null;
+infoBtn.addEventListener('click', () => {
+  alert('Un problème ? Contacte Kenzo.S');
+});
 
-      function logDebug(...args){ console.log('[login]', ...args); }
+// toggle between signup <-> login
+toggleBtn.addEventListener('click', () => {
+  isLogin = !isLogin;
+  if(isLogin){
+    primaryBtn.textContent = 'Se connecter';
+    toggleBtn.textContent = 'Pas encore de compte ?';
+    signupFields.style.display = 'none';
+    forgotBtn.style.display = 'inline-block';
+  } else {
+    primaryBtn.textContent = 'Créer un compte';
+    toggleBtn.textContent = 'Déjà un compte ?';
+    signupFields.style.display = 'block';
+    forgotBtn.style.display = 'none';
+  }
+  clearMessage();
+});
 
-      function show(text, type='error', withControls=false){
-        msgEl.style.display = 'block';
-        msgEl.className = 'message ' + (type === 'error' ? 'error' : 'success');
-        msgEl.textContent = text;
-        verifyControls.style.display = withControls ? 'block' : 'none';
+// forgot password
+forgotBtn.addEventListener('click', async () => {
+  clearMessage();
+  const email = (emailEl.value || '').trim();
+  if(!email){ setMessage('Renseigne ton email pour réinitialiser le mot de passe.', 'error'); return; }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    setMessage(`Email de réinitialisation envoyé à ${email}. Vérifie ta boîte mail.`, 'success');
+  }catch(e){
+    console.error(e);
+    setMessage(e.code === 'auth/user-not-found' ? "Aucun compte lié à cet email." : "Erreur lors de l'envoi. Voir console.", 'error');
+  }
+});
+
+// main create/login handler
+primaryBtn.addEventListener('click', async () => {
+  clearMessage();
+  const email = (emailEl.value || '').trim();
+  const pw = pwEl.value || '';
+  if(!email || !pw){ setMessage('Email et mot de passe requis.', 'error'); return; }
+
+  if(isLogin){
+    // login flow (only email+pw)
+    primaryBtn.disabled = true;
+    try{
+      const cred = await signInWithEmailAndPassword(auth, email, pw);
+      const user = cred.user;
+      await user.getIdToken(true); // refresh token
+      if(!user.emailVerified){
+        // red message required by user
+        setMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail puis clique sur le lien dedans pour que sa marche", 'error');
+        // show verify controls
+        verifyControls.style.display = 'block';
+        startPolling();
+        return;
       }
-      function clearMsg(){ msgEl.style.display = 'none'; msgEl.textContent = ''; verifyControls.style.display = 'none'; }
+      // OK -> home
+      window.location.href = 'home.html';
+    }catch(e){
+      console.error(e);
+      const map = {
+        'auth/user-not-found': "Aucun compte trouvé.",
+        'auth/wrong-password': "Mot de passe incorrect.",
+        'auth/too-many-requests': "Trop de tentatives, réessaie plus tard.",
+        'auth/invalid-email': "Adresse email invalide."
+      };
+      setMessage(map[e.code] || (e.message || 'Erreur lors de la connexion.'), 'error');
+    }finally{ primaryBtn.disabled = false; }
+  } else {
+    // signup flow (prenom required, classe required and in allowed set)
+    const prenom = (prenomEl.value || '').trim();
+    const nom = (nomEl.value || '').trim();
+    const classe = (classeEl.value || '').trim().toUpperCase();
 
-      // info
-      document.getElementById('loginInfo').addEventListener('click', () => {
-        alert('Veuillez entrer la clé de sécurité que Kenzo.S vous a donnée.');
-      });
+    if(!prenom){ setMessage('Le prénom est obligatoire.', 'error'); return; }
+    if(!classe || !ALLOWED.has(classe)){ setMessage('Choisis une classe valide (6A→3E).', 'error'); return; }
 
-      toggleBtn.addEventListener('click', () => {
-        isLogin = !isLogin;
-        primaryBtn.textContent = isLogin ? 'Se connecter' : 'Créer un compte';
-        toggleBtn.textContent = isLogin ? 'Pas encore de compte ?' : 'Déjà un compte ?';
-        clearMsg();
-      });
+    primaryBtn.disabled = true;
+    try{
+      const cred = await createUserWithEmailAndPassword(auth, email, pw);
+      const user = cred.user;
+      // update displayName (prenom)
+      await updateProfile(user, { displayName: prenom });
+      // create users document — classe set now (admin can later change)
+      await setDoc(doc(db,'users',user.uid), {
+        prenom: prenom,
+        nom: nom || '',
+        email: email,
+        classe: classe
+      }, { merge: true });
+      // send verification
+      await sendEmailVerification(user);
+      setMessage(`Email de vérification envoyé à ${email}. Vérifie ta boîte mail.`, 'success');
+      verifyControls.style.display = 'block';
+      startPolling();
+      return;
+    }catch(e){
+      console.error(e);
+      const map = {
+        'auth/email-already-in-use': "Cet email est déjà utilisé.",
+        'auth/invalid-email': "Adresse email invalide.",
+        'auth/weak-password': "Mot de passe trop faible (6+ caractères)."
+      };
+      setMessage(map[e.code] || (e.message || 'Erreur lors de la création.'), 'error');
+    }finally{ primaryBtn.disabled = false; }
+  }
+});
 
-      primaryBtn.addEventListener('click', async () => {
-        clearMsg();
-        const email = (emailEl.value||'').trim();
-        const pw = pwEl.value || '';
-        const pseudo = (pseudoEl.value||'').trim();
+// resend verification
+resendBtn.addEventListener('click', async () => {
+  clearMessage();
+  const user = auth.currentUser;
+  if(!user){ setMessage("Reconnecte-toi puis renvoie l'email.", 'error'); return; }
+  try{
+    await sendEmailVerification(user);
+    setMessage(`Email de vérification envoyé à ${user.email}.`, 'success');
+  }catch(e){
+    console.error(e);
+    setMessage("Erreur en renvoyant l'email de vérification.", 'error');
+  }
+});
 
-        if(!email || !pw){ show('Email et mot de passe requis.', 'error'); return; }
-        if(!isLogin && !pseudo){ show("Le pseudo est obligatoire à l'inscription.", 'error'); return; }
-
-        primaryBtn.disabled = true;
-        try {
-          if (isLogin) {
-            logDebug('Tentative connexion', email);
-            const cred = await signInWithEmailAndPassword(auth, email, pw);
-            const user = cred.user;
-            logDebug('Connexion OK', user.uid, 'emailVerified=', user.emailVerified);
-            await user.getIdToken(true);
-            if (!user.emailVerified) {
-              show("Email non vérifié. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur \"C'est fait\".", 'error', true);
-              startPolling();
-              return;
-            }
-            window.location.href = 'home.html';
-          } else {
-            logDebug('Création compte', email);
-            const cred = await createUserWithEmailAndPassword(auth, email, pw);
-            const user = cred.user;
-            logDebug('Compte créé', user.uid);
-            await updateProfile(user, { displayName: pseudo });
-            await setDoc(doc(db,'users',user.uid), { pseudo: pseudo, lastname: '', email: email }, { merge: true });
-            await sendEmailVerification(user);
-            show(`Email de confirmation envoyé à ${email}. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur "C'est fait".`, 'success', true);
-            startPolling();
-            return;
-          }
-        } catch (e) {
-          console.error('Firebase error:', e);
-          const code = e.code || '';
-          const mapping = {
-            'auth/email-already-in-use': "Cet email est déjà utilisé.",
-            'auth/invalid-email': "Adresse email invalide.",
-            'auth/weak-password': "Mot de passe trop faible (6+ caractères).",
-            'auth/user-not-found': "Aucun compte trouvé.",
-            'auth/wrong-password': "Mot de passe incorrect.",
-            'auth/too-many-requests': "Trop de tentatives, réessaie plus tard."
-          };
-          show(mapping[code] || (e.message || 'Erreur inconnue. Voir console.'), 'error');
-        } finally {
-          primaryBtn.disabled = false;
-        }
-      });
-
-      function startPolling(){
-        stopPolling();
-        poll = setInterval(async ()=>{
-          try{
-            if(!auth.currentUser) return;
-            await auth.currentUser.reload();
-            logDebug('poll: emailVerified=', auth.currentUser.emailVerified);
-            if(auth.currentUser.emailVerified){
-              stopPolling();
-              show('Email vérifié — redirection…', 'success');
-              setTimeout(()=> window.location.href = 'home.html', 700);
-            }
-          }catch(err){ console.error('Polling error', err); }
-        }, 3000);
-      }
-      function stopPolling(){ if(poll){ clearInterval(poll); poll = null; } }
-
-      resendBtn.addEventListener('click', async ()=> {
-        clearMsg();
-        if(!auth.currentUser) { show("Reconnecte-toi puis renvoie l'email.", 'error'); return; }
-        try{ await sendEmailVerification(auth.currentUser); show('Email renvoyé.', 'success', true); } catch(e){ console.error(e); show('Erreur en renvoyant.', 'error', true); }
-      });
-
-      checkedBtn.addEventListener('click', async ()=> {
-        clearMsg();
-        if(!auth.currentUser){ show("Tu n'es pas connecté.", 'error'); return; }
-        try{
-          await auth.currentUser.reload();
-          if(auth.currentUser.emailVerified){ stopPolling(); show('Email vérifié — redirection…', 'success'); setTimeout(()=> window.location.href = 'home.html', 600); }
-          else show("Toujours pas vérifié. Vérifie le lien reçu par mail puis réessaie.", 'error', true);
-        }catch(e){ console.error(e); show('Erreur lors de la vérification. Voir console.', 'error', true); }
-      });
-
-      cancelCheck.addEventListener('click', ()=> { stopPolling(); clearMsg(); });
-
-      onAuthStateChanged(auth, async (user) => {
-        logDebug('onAuthStateChanged', user ? user.uid : null);
-        if(user){
-          try{ await user.reload(); } catch(e){ console.warn('reload failed', e); }
-          if(user.emailVerified){ window.location.href = 'home.html'; }
-          else { show("Ton email n'est pas vérifié. Vérifie ta boîte mail puis clique sur \"C'est fait\".", 'error', true); startPolling(); }
-        }
-      });
-
-      // accessibility: Enter submits
-      [emailEl, pwEl, pseudoEl].forEach(el => { el.addEventListener('keydown', (e) => { if(e.key === 'Enter') primaryBtn.click(); }); });
-
-      console.log('[login] Firebase logic ready.');
-    } catch (err) {
-      // Si import ou autre échoue, on le logue clairement.
-      console.error('[login] Erreur en important/initialisant Firebase ou dans le script :', err);
-      // On garde les handlers de test pour que l'utilisateur sache que les boutons répondent.
-      const msgEl = document.getElementById('message');
-      msgEl.style.display = 'block';
-      msgEl.className = 'message error';
-      msgEl.textContent = "Erreur technique : impossible de charger Firebase. Vérifie la console (F12).";
+// "C'est fait" button checks emailVerified
+checkedBtn.addEventListener('click', async () => {
+  clearMessage();
+  const user = auth.currentUser;
+  if(!user){ setMessage("Tu n'es pas connecté.", 'error'); return; }
+  try{
+    await user.reload();
+    if(user.emailVerified){
+      verifyControls.style.display = 'none';
+      setMessage('Email vérifié — redirection…', 'success');
+      setTimeout(()=> window.location.href = 'home.html', 700);
+    } else {
+      setMessage("Toujours pas vérifié. Vérifie le lien reçu par mail puis réessaie.", 'error');
     }
-  })();
-  </script>
+  }catch(e){
+    console.error(e);
+    setMessage("Erreur lors de la vérification. Voir console.", 'error');
+  }
+});
+
+cancelCheck.addEventListener('click', () => {
+  verifyControls.style.display = 'none';
+  clearMessage();
+});
+
+// small poll to auto-detect verification (runs after sending)
+function startPolling(){
+  stopPolling();
+  poll = setInterval(async () => {
+    try{
+      if(!auth.currentUser) return;
+      await auth.currentUser.reload();
+      if(auth.currentUser.emailVerified){
+        stopPolling();
+        verifyControls.style.display = 'none';
+        setMessage('Email vérifié — redirection…', 'success');
+        setTimeout(()=> window.location.href = 'home.html', 700);
+      }
+    }catch(e){ console.error('poll error', e); }
+  }, 2500);
+}
+function stopPolling(){ if(poll){ clearInterval(poll); poll = null; } }
+
+// if user already logged in and verified, redirect
+onAuthStateChanged(auth, async (user) => {
+  if(!user) return;
+  try{ await user.reload(); } catch(e){ console.warn(e); }
+  if(user.emailVerified){ window.location.href = 'home.html'; }
+  else {
+    // user logged but not verified -> show message and controls
+    setMessage("Ton email n'est pas vérifié. Vérifie ta boîte mail puis clique sur le lien dedans pour que sa marche", 'error');
+    verifyControls.style.display = 'block';
+    startPolling();
+  }
+});
+
+// accessibility: enter submits
+[emailEl, pwEl, prenomEl, nomEl, classeEl].forEach(el => {
+  if(!el) return;
+  el.addEventListener('keydown', (e) => { if(e.key === 'Enter') primaryBtn.click(); });
+});
+
+// initial mode = signup (user asked to require prenom on create)
+(function init(){
+  isLogin = false;
+  signupFields.style.display = 'block';
+  forgotBtn.style.display = 'none';
+  primaryBtn.textContent = 'Créer un compte';
+  toggleBtn.textContent = 'Déjà un compte ?';
+})();
+</script>
 </body>
 </html>
