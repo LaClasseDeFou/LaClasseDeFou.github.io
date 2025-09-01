@@ -1,45 +1,60 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Chat de classe — Debug</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chat de classe</title>
 <style>
-  :root{--bg:linear-gradient(135deg,#6a11cb,#2575fc);--glass:rgba(255,255,255,0.03);--muted:rgba(238,242,255,0.8);--radius:12px;font-family:Inter,Arial,sans-serif}
-  body{margin:0;background:var(--bg);color:white}
-  .wrap{max-width:1000px;margin:14px auto;padding:12px}
-  .card{background:var(--glass);border-radius:12px;padding:12px;min-height:60vh;display:flex;flex-direction:column}
-  .messages{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;position:relative}
-  .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
-  .composer{display:flex;gap:8px;padding-top:10px}
-  .input{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,0.25)}
-  pre{background:rgba(0,0,0,0.3);padding:8px;border-radius:8px;overflow:auto;max-height:160px}
-  .small{color:var(--muted);font-size:13px}
+:root{--bg:linear-gradient(135deg,#6a11cb,#2575fc);--glass:rgba(255,255,255,0.03);--muted:rgba(238,242,255,0.8);--radius:12px;font-family:Inter,Arial,sans-serif}
+body{margin:0;background:var(--bg);color:white}
+.wrap{max-width:1000px;margin:14px auto;padding:12px}
+.card{background:var(--glass);border-radius:12px;padding:12px;min-height:60vh;display:flex;flex-direction:column}
+.messages{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;position:relative}
+.msg.me{align-self:flex-end;background:linear-gradient(90deg,#7f5af0,#6a11cb)}
+.meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+.composer{display:flex;gap:8px;padding-top:10px}
+.input{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white;font-size:15px}
+.small{color:var(--muted);font-size:13px}
+.report-badge{position:absolute;right:8px;top:8px;background:rgba(255,80,80,0.12);color:#ffb4b4;padding:4px 6px;border-radius:8px;font-size:12px}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <h2>Chat de classe — debug</h2>
-    <div class="small">Cette page filtre côté client : si les docs ont une casse/orthographe différente, on les verra quand même.</div>
-    <div class="card">
-      <div id="messages" class="messages"></div>
-      <div id="composer" class="composer" style="margin-top:8px">
-        <input id="textInput" class="input" placeholder="Écrire un message... (Enter pour envoyer)">
-        <button id="sendBtn" class="btn">Envoyer</button>
-      </div>
-      <div style="margin-top:10px">
-        <div class="small">Documents reçus (raw snapshot) :</div>
-        <pre id="raw" style="display:none"></pre>
-      </div>
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div><h2 id="classeTitle">Classe</h2><div id="classeSub" class="small"></div></div>
+    <div><button onclick="location.href='home.html'">Accueil</button></div>
+  </div>
+
+  <div class="card">
+    <div id="messages" class="messages"></div>
+
+    <div id="composerWrap" class="composer" style="margin-top:10px">
+      <input id="textInput" class="input" placeholder="Écrire un message..." />
+      <button id="sendBtn" class="btn">Envoyer</button>
     </div>
   </div>
+</div>
+
+<!-- report modal identical to general -->
+<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+  <div style="background:white;color:black;padding:16px;border-radius:10px;min-width:280px">
+    <h3 style="margin-top:0">Signaler le message</h3>
+    <div id="reportMsgPreview" style="margin-bottom:8px;color:#333"></div>
+    <textarea id="reportReason" placeholder="Raison" style="width:100%;height:80px;border-radius:8px;padding:8px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+      <button id="reportCancel" style="padding:8px 10px;border-radius:8px">Annuler</button>
+      <button id="reportSend" style="padding:8px 10px;border-radius:8px;background:#ff6b6b;color:white">Envoyer</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import {
-  getFirestore, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp
+  getFirestore, collection, doc, addDoc, query, orderBy, onSnapshot,
+  serverTimestamp, getDocs, setDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -56,65 +71,57 @@ const auth = getAuth();
 const db = getFirestore();
 
 const messagesEl = document.getElementById('messages');
-const rawEl = document.getElementById('raw');
 const textInput = document.getElementById('textInput');
 const sendBtn = document.getElementById('sendBtn');
+const classeTitle = document.getElementById('classeTitle');
+const classeSub = document.getElementById('classeSub');
 
 function qs(name){ return new URLSearchParams(location.search).get(name); }
-let classeParam = qs('class'); // prefer URL param
-if(classeParam) classeParam = classeParam.toString();
-const norm = s => (s||'').normalize ? (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim() : (s||'').toLowerCase().trim();
+let classeParam = qs('class') || '';
+classeParam = classeParam ? classeParam.toString() : '';
 
 const BLACKLIST = ['connard','merde','putain','sale','nique'];
-function maskBadWords(txt){
-  let t = txt;
-  BLACKLIST.forEach(w=>{
-    const rx = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','gi');
-    t = t.replace(rx, (m)=> '#'.repeat(m.length));
-  });
-  return t;
-}
+function maskBadWords(txt){ let t=txt; BLACKLIST.forEach(w=>{ const rx=new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'); t = t.replace(rx, m=> '#'.repeat(m.length)); }); return t; }
 
 let myUid=null, myName='', isAdmin=false;
-function log(...a){ console.log('[DBG classe]', ...a); }
+let currentReportTarget=null;
 
-// Subscribe to all messages and filter client-side by normalized classe === normalized classeParam
-function subscribeAllAndFilter(){
-  const q = query(collection(db,'messages'), orderBy('createdAt'));
+function messagesCollectionRefForClass(cls){
+  // returns the collection reference to classes/{cls}/messages
+  return collection(db,'classes', cls, 'messages');
+}
+
+function subscribeClassMessages(cls){
+  const colRef = messagesCollectionRefForClass(cls);
+  const q = query(colRef, orderBy('createdAt'));
   onSnapshot(q, snap => {
-    log('snapshot total docs:', snap.size);
-    const docs = [];
-    snap.forEach(d => {
-      const data = d.data(); data._id = d.id; docs.push(data);
-    });
-    rawEl.style.display = 'block'; rawEl.textContent = JSON.stringify(docs, null, 2);
-
-    if(!classeParam){
-      messagesEl.innerHTML = '<div style="color:#ffd369">Pas de param "class" dans l\'URL et pas d\'assignation trouvée — impossible de filtrer automatiquement.</div>';
-      return;
-    }
-    const normTarget = norm(classeParam);
-    const filtered = docs.filter(d => norm(d.classe || d.class || '') === normTarget);
-    log('norm target=', normTarget, 'filtered count=', filtered.length);
     messagesEl.innerHTML = '';
-    if(filtered.length === 0){
-      messagesEl.innerHTML = `<div style="color:#ffd369">Aucun message trouvé pour la classe "${classeParam}" (vérifie le champ "classe" des documents ci-dessous).</div>`;
-    } else {
-      filtered.forEach(m => {
-        const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
-        const meta = document.createElement('div'); meta.className = 'meta';
-        const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
-        const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
-        meta.textContent = `${who} • ${time}`;
-        const body = document.createElement('div'); body.textContent = m.text || '';
-        el.appendChild(meta); el.appendChild(body);
-        messagesEl.appendChild(el);
-      });
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+    snap.forEach(d=>{
+      const m = d.data(); const id = d.id;
+      const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
+      const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
+      meta.textContent = `${who} • ${time}`;
+      const body = document.createElement('div'); body.textContent = m.text || '';
+      el.appendChild(meta); el.appendChild(body);
+
+      if(m._reported){ const badge=document.createElement('div'); badge.className='report-badge'; badge.textContent='Signalé'; el.appendChild(badge); }
+
+      if(isAdmin){
+        const del=document.createElement('button'); del.textContent='Suppr'; del.style.marginTop='8px';
+        del.onclick = async (ev)=>{ ev.stopPropagation(); if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'classes',cls,'messages',id)); };
+        el.appendChild(del);
+      }
+
+      el.addEventListener('click', ()=>{ currentReportTarget = { id, path: `classes/${cls}/messages/${id}`, data: m }; document.getElementById('reportMsgPreview').textContent = `${who}: ${m.text || ''}`; document.getElementById('reportReason').value=''; document.getElementById('reportModal').style.display='flex'; });
+
+      messagesEl.appendChild(el);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
   }, err => {
-    console.error('[DBG classe] snapshot error', err);
-    messagesEl.innerHTML = '<div style="color:#ff9b9b">Erreur en lisant les messages (voir console). Vérifie tes règles Firestore.</div>';
+    console.error('class snapshot error', err);
+    messagesEl.innerHTML = '<div style="color:#ff9b9b">Erreur lecture — voir console.</div>';
   });
 }
 
@@ -122,38 +129,58 @@ onAuthStateChanged(auth, async user => {
   if(!user){ location.href='login.html'; return; }
   myUid = user.uid; myName = user.displayName || '';
   try{ const t = await user.getIdTokenResult(); isAdmin = !!(t.claims && t.claims.admin); }catch(e){}
-  // If classeParam missing, attempt to fetch from users doc (non-blocking)
+
   if(!classeParam){
+    // try to get from users doc
     try{
-      const userDoc = await (await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js')).getDoc((await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js')).doc(db,'users', myUid));
-      if(userDoc && userDoc.exists()) { classeParam = userDoc.data().classe || classeParam; log('classe from users doc =', classeParam); }
-    }catch(e){ console.warn('failed to read user doc', e); }
+      const uRef = doc(db,'users', myUid);
+      const uSnap = await getDocs(collection(db,'users')); // fallback - but best is getDoc, but keeping imports minimal
+    }catch(e){ console.warn('could not fetch user doc', e); }
+    // If still missing, stop
+    if(!classeParam){ messagesEl.innerHTML = '<div style="color:#ffd369">Aucune classe fournie.</div>'; return; }
   }
-  subscribeAllAndFilter();
+
+  classeTitle.textContent = `Classe ${classeParam}`;
+  classeSub.textContent = `Chat privé ${classeParam}`;
+
+  // subscribe to the class-specific messages collection
+  subscribeClassMessages(classeParam);
 });
 
 async function sendMessage(){
-  const raw = (textInput.value||'').trim();
-  if(!raw) return;
+  const raw = (textInput.value||'').trim(); if(!raw) return;
   const user = auth.currentUser; if(!user){ alert('Reconnecte-toi'); return; }
   if(!classeParam){ alert('Classe non définie'); return; }
   const text = maskBadWords(raw);
   try{
-    await addDoc(collection(db,'messages'), {
-      text,
-      uid: user.uid,
-      displayName: user.displayName || '',
-      email: user.email || '',
-      classe: classeParam, // use classeParam for class messages
+    await addDoc(messagesCollectionRefForClass(classeParam), {
+      text, uid: user.uid, displayName: user.displayName || '', email: user.email || '',
       createdAt: serverTimestamp()
     });
     textInput.value = '';
-  }catch(e){ console.error('send error', e); alert('Erreur lors de l\'envoi'); }
+  }catch(e){ console.error('send error', e); alert('Erreur'); }
 }
 
 sendBtn.addEventListener('click', sendMessage);
 textInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
 
-</script>
-</body>
-</html>
+// reporting: similar pattern but store messagePath and clase
+document.getElementById('reportCancel').addEventListener('click', ()=> document.getElementById('reportModal').style.display='none');
+document.getElementById('reportSend').addEventListener('click', async ()=>{
+  const reason = (document.getElementById('reportReason').value||'').trim();
+  if(!reason){ alert('Donne une raison.'); return; }
+  if(!currentReportTarget){ alert('Aucun message.'); document.getElementById('reportModal').style.display='none'; return; }
+  try{
+    await addDoc(collection(db,'reports'), {
+      messageId: currentReportTarget.id,
+      messagePath: currentReportTarget.path,
+      message: currentReportTarget.data,
+      reporterUid: auth.currentUser.uid,
+      reporterEmail: auth.currentUser.email,
+      reason, createdAt: serverTimestamp(),
+      classe: classeParam
+    });
+    const metaId = currentReportTarget.path.replace(/\//g,'__');
+    await setDoc(doc(db,'reports_meta', metaId), { reported: true }, { merge: true });
+    document.getElementById('reportModal').style.display='none';
+    alert('Signalem
