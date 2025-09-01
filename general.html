@@ -1,46 +1,62 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Chat général — Debug</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chat général</title>
 <style>
-  :root{--bg:linear-gradient(135deg,#6a11cb,#2575fc);--glass:rgba(255,255,255,0.03);--muted:rgba(238,242,255,0.8);--radius:12px;font-family:Inter,Arial,sans-serif}
-  body{margin:0;background:var(--bg);color:white}
-  .wrap{max-width:1000px;margin:14px auto;padding:12px}
-  .card{background:var(--glass);border-radius:12px;padding:12px;min-height:60vh;display:flex;flex-direction:column}
-  .messages{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;position:relative}
-  .msg.me{align-self:flex-end;background:linear-gradient(90deg,#7f5af0,#6a11cb)}
-  .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
-  .composer{display:flex;gap:8px;padding-top:10px}
-  .input{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,0.25)}
-  pre{background:rgba(0,0,0,0.3);padding:8px;border-radius:8px;overflow:auto;max-height:160px}
-  .small{color:var(--muted);font-size:13px}
+/* (styles identiques / simples pour clarté) */
+:root{--bg:linear-gradient(135deg,#6a11cb,#2575fc);--glass:rgba(255,255,255,0.03);--muted:rgba(238,242,255,0.8);--radius:12px;font-family:Inter,Arial,sans-serif}
+body{margin:0;background:var(--bg);color:white}
+.wrap{max-width:1000px;margin:14px auto;padding:12px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--glass);border-radius:12px;padding:12px;min-height:60vh;display:flex;flex-direction:column}
+.messages{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;position:relative}
+.msg.me{align-self:flex-end;background:linear-gradient(90deg,#7f5af0,#6a11cb)}
+.meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+.composer{display:flex;gap:8px;padding-top:10px}
+.input{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white;font-size:15px}
+.small{color:var(--muted);font-size:13px}
+.report-badge{position:absolute;right:8px;top:8px;background:rgba(255,80,80,0.12);color:#ffb4b4;padding:4px 6px;border-radius:8px;font-size:12px}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <h2>Chat général — debug</h2>
-    <div style="margin-bottom:8px" class="small">Cette version affiche des logs et un fallback client-side pour diagnostiquer pourquoi rien ne s'affiche.</div>
-    <div class="card">
-      <div id="messages" class="messages" aria-live="polite"></div>
-      <div class="composer">
-        <input id="text" class="input" placeholder="Écrire un message... (Enter pour envoyer)">
-        <button id="send" class="btn">Envoyer</button>
-      </div>
-      <div style="margin-top:10px;">
-        <div class="small">Documents reçus (raw snapshot) :</div>
-        <pre id="raw" style="display:none"></pre>
-      </div>
+<div class="wrap">
+  <div class="top">
+    <div><h2 style="margin:0">Chat général</h2><div class="small">Discussion ouverte à tous</div></div>
+    <div><button onclick="location.href='home.html'">Retour</button></div>
+  </div>
+
+  <div class="card">
+    <div id="messages" class="messages" aria-live="polite"></div>
+
+    <div class="composer">
+      <input id="text" class="input" placeholder="Écrire un message..." aria-label="Message" />
+      <button id="send" class="btn">Envoyer</button>
     </div>
   </div>
+</div>
+
+<!-- report modal -->
+<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+  <div style="background:white;color:black;padding:16px;border-radius:10px;min-width:280px">
+    <h3 style="margin-top:0">Signaler le message</h3>
+    <div id="reportMsgPreview" style="margin-bottom:8px;color:#333"></div>
+    <textarea id="reportReason" placeholder="Raison" style="width:100%;height:80px;border-radius:8px;padding:8px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+      <button id="reportCancel" style="padding:8px 10px;border-radius:8px">Annuler</button>
+      <button id="reportSend" style="padding:8px 10px;border-radius:8px;background:#ff6b6b;color:white">Envoyer</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import {
-  getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp
+  getFirestore, collection, addDoc, query, orderBy, onSnapshot,
+  serverTimestamp, deleteDoc, doc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -59,123 +75,96 @@ const db = getFirestore();
 const messagesEl = document.getElementById('messages');
 const textEl = document.getElementById('text');
 const sendBtn = document.getElementById('send');
-const rawEl = document.getElementById('raw');
 
 const BLACKLIST = ['connard','merde','putain','sale','nique'];
-function maskBadWords(txt){
-  let t = txt;
-  BLACKLIST.forEach(w=>{
-    const rx = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','gi');
-    t = t.replace(rx, (m)=> '#'.repeat(m.length));
-  });
-  return t;
-}
+function maskBadWords(txt){ let t=txt; BLACKLIST.forEach(w=>{ const rx=new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'); t = t.replace(rx, m=> '#'.repeat(m.length)); }); return t; }
 
 let myUid=null, myName='', isAdmin=false;
-function log(...args){ console.log('[DBG general]', ...args); }
+let currentReportTarget=null;
 
-// Subscribes to ALL messages then filters client-side to show only "Général" variants.
-// This is intentionally permissive to debug discrepancies (accents, casse, typos).
-function subscribeAndFilter(){
-  const q = query(collection(db,'messages'), orderBy('createdAt'));
+function subscribeGlobal(){
+  // IMPORTANT: subscribe to the dedicated collection "global_messages"
+  const q = query(collection(db,'global_messages'), orderBy('createdAt'));
   onSnapshot(q, snap => {
-    log('snapshot total docs:', snap.size);
-    const docs = [];
-    snap.forEach(d => {
-      const data = d.data();
-      data._id = d.id;
-      docs.push(data);
-    });
-    // show raw for debugging
-    rawEl.style.display = 'block';
-    rawEl.textContent = JSON.stringify(docs, null, 2);
-
-    // filtering: accept several variants as global
-    const globalNames = new Set(['général','général ','général','general','général','général']);
-    // we'll match case-insensitively, accent-insensitively by normalizing
-    function norm(s){ if(!s) return ''; return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
-
-    const filtered = docs.filter(d => {
-      const c = norm(d.classe || d.class || '');
-      // accept values that normalize to 'general'
-      if(c === 'general' || c === 'général' || c === 'g' || c === '') return (c === 'general' || c === 'général' || c === '' && false); // keep strict below
-      // we'll return true only if normalized is 'general'
-      return c === 'general';
-    });
-
-    // Better: select docs where normalized classe == 'general'
-    const filtered2 = docs.filter(d => {
-      const c = norm(d.classe || d.class || '');
-      return c === 'general';
-    });
-
-    log('filtered2 (normalized === "general") count=', filtered2.length);
     messagesEl.innerHTML = '';
-    if(filtered2.length === 0){
-      // Try more permissive fallback: any doc with classe string containing 'gen' (for debug only)
-      const fallback = docs.filter(d => {
-        const c = (d.classe || d.class || '').toString().toLowerCase();
-        return c.includes('gen') || c.trim() === 'général' || c.trim() === 'général ';
-      });
-      log('fallback match count=', fallback.length);
-      if(fallback.length > 0){
-        renderMessages(fallback);
-      } else {
-        // If nothing, show a clear message for debugging
-        messagesEl.innerHTML = '<div style="color:#ffd369">Aucun message "Général" trouvé. Voir les documents bruts ci-dessous pour vérifier les champs "classe".</div>';
-      }
-    } else {
-      renderMessages(filtered2);
-    }
-  }, err => {
-    console.error('[DBG general] onSnapshot error', err);
-    messagesEl.innerHTML = '<div style="color:#ff9b9b">Erreur en lisant les messages (voir console). Vérifie tes règles Firestore.</div>';
-  });
-}
+    snap.forEach(d => {
+      const m = d.data(); const id = d.id;
+      const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
+      const meta = document.createElement('div'); meta.className='meta';
+      const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
+      const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
+      meta.textContent = `${who} • ${m.classe || 'Général'} • ${time}`;
+      const body = document.createElement('div'); body.textContent = m.text || '';
+      el.appendChild(meta); el.appendChild(body);
 
-function renderMessages(list){
-  list.forEach(m => {
-    const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
-    const meta = document.createElement('div'); meta.className='meta';
-    const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
-    const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
-    meta.textContent = `${who} • ${m.classe || ''} • ${time}`;
-    const body = document.createElement('div'); body.textContent = m.text || '';
-    el.appendChild(meta); el.appendChild(body);
-    messagesEl.appendChild(el);
+      // reported badge
+      if(m._reported){ const badge=document.createElement('div'); badge.className='report-badge'; badge.textContent='Signalé'; el.appendChild(badge); }
+
+      // admin delete
+      if(isAdmin){
+        const del = document.createElement('button'); del.textContent='Suppr'; del.style.marginTop='8px';
+        del.onclick = async (ev)=>{ ev.stopPropagation(); if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'global_messages',id)); };
+        el.appendChild(del);
+      }
+
+      el.addEventListener('click', (ev)=>{ ev.stopPropagation(); currentReportTarget = { id, path: `global_messages/${id}`, data: m }; document.getElementById('reportMsgPreview').textContent = `${who}: ${m.text || ''}`; document.getElementById('reportReason').value=''; document.getElementById('reportModal').style.display='flex'; });
+
+      messagesEl.appendChild(el);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }, err => {
+    console.error('general snapshot error', err);
+    messagesEl.innerHTML = '<div style="color:#ff9b9b">Erreur lecture — voir console.</div>';
   });
-  messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
 onAuthStateChanged(auth, async user => {
-  if(!user){ location.href='login.html'; return; }
+  if(!user) { location.href='login.html'; return; }
   myUid = user.uid; myName = user.displayName || '';
-  try{ const token = await user.getIdTokenResult(); isAdmin = !!(token.claims && token.claims.admin); }catch(e){}
-  log('user ready', myUid, 'admin=', isAdmin);
-  subscribeAndFilter();
+  try{ const t = await user.getIdTokenResult(); isAdmin = !!(t.claims && t.claims.admin); } catch(e){ console.warn(e); }
+  subscribeGlobal();
 });
 
 async function sendMessage(){
-  const raw = (textEl.value||'').trim();
-  if(!raw) return;
-  const user = auth.currentUser; if(!user){ alert('Reconnecte-toi'); return; }
+  const raw = (textEl.value||'').trim(); if(!raw) return;
+  const user = auth.currentUser; if(!user) { alert('Reconnecte-toi'); return; }
   const text = maskBadWords(raw);
   try{
-    await addDoc(collection(db,'messages'), {
-      text,
-      uid: user.uid,
-      displayName: user.displayName || '',
-      email: user.email || '',
-      classe: 'Général', // ensure we set this exact field for new global messages
-      createdAt: serverTimestamp()
+    const docRef = await addDoc(collection(db,'global_messages'), {
+      text, uid: user.uid, displayName: user.displayName || '', email: user.email || '',
+      classe: 'Général', createdAt: serverTimestamp()
     });
+    // optional: set meta for reports visibility
     textEl.value = '';
-  }catch(e){ console.error('send error', e); alert('Erreur lors de l\'envoi'); }
+  }catch(e){ console.error(e); alert('Erreur'); }
 }
 
 sendBtn.addEventListener('click', sendMessage);
 textEl.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
 
+// reporting
+document.getElementById('reportCancel').addEventListener('click', ()=> document.getElementById('reportModal').style.display='none');
+document.getElementById('reportSend').addEventListener('click', async ()=>{
+  const reason = (document.getElementById('reportReason').value||'').trim();
+  if(!reason){ alert('Donne une raison.'); return; }
+  if(!currentReportTarget){ alert('Aucun message.'); document.getElementById('reportModal').style.display='none'; return; }
+  try{
+    await addDoc(collection(db,'reports'), {
+      messageId: currentReportTarget.id,
+      messagePath: currentReportTarget.path,
+      message: currentReportTarget.data,
+      reporterUid: auth.currentUser.uid,
+      reporterEmail: auth.currentUser.email,
+      reason, createdAt: serverTimestamp(),
+      classe: 'Général'
+    });
+    // set a small meta to show reported badge quickly (id use path replaced)
+    const metaId = currentReportTarget.path.replace(/\//g,'__');
+    await setDoc(doc(db,'reports_meta', metaId), { reported: true }, { merge: true });
+    document.getElementById('reportModal').style.display='none';
+    alert('Signalement envoyé.');
+  }catch(e){ console.error(e); alert('Erreur lors du signalement.'); }
+});
 </script>
 </body>
 </html>
