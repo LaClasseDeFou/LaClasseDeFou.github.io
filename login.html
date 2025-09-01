@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Connexion / Inscription</title>
 <style>
-  :root{ --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%); --accent:#ffd369; --accent-dark:#ffb84d; --card-text:#eef2ff; --muted:rgba(238,242,255,0.75); --radius:14px; --shadow:0 8px 30px rgba(2,6,23,0.45); font-family:Inter,Arial;}
+  :root{
+    --bg-1: linear-gradient(135deg,#6a11cb 0%, #2575fc 100%);
+    --accent:#ffd369;
+    --card-text:#eef2ff;
+    --muted:rgba(238,242,255,0.75);
+    --radius:14px;
+    --shadow:0 8px 30px rgba(2,6,23,0.45);
+    font-family:Inter,Arial;
+  }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg-1);color:var(--card-text);-webkit-font-smoothing:antialiased}
   .container{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;}
@@ -18,30 +26,31 @@
   .success{background:rgba(46,204,113,0.08);color:#b9f6ca}
   .error{background:rgba(255,107,107,0.12);color:#ffb4b4}
   .info-btn{width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#ffd369,#ffb84d);color:#0f1724;font-weight:800;border:2px solid rgba(0,0,0,0.12);cursor:pointer}
+  small{color:var(--muted)}
 </style>
 </head>
 <body>
   <div class="container">
-    <div class="card">
+    <div class="card" role="main">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;gap:12px;align-items:center">
           <div class="mark">CL</div>
           <div>
             <h2>Connexion / Inscription</h2>
-            <div style="color:var(--muted)">Crée un compte ou connecte-toi pour accéder à la classe.</div>
+            <div><small>Crée un compte ou connecte-toi pour accéder à la classe.</small></div>
           </div>
         </div>
-        <div><button id="loginInfo" class="info-btn">i</button></div>
+        <div><button id="loginInfo" class="info-btn" aria-label="info">i</button></div>
       </div>
 
       <div style="margin-top:12px">
-        <input id="email" class="input" type="email" placeholder="Email">
+        <input id="email" class="input" type="email" placeholder="Email" />
         <div style="margin-top:10px">
-          <input id="password" class="input" type="password" placeholder="Mot de passe">
+          <input id="password" class="input" type="password" placeholder="Mot de passe" />
         </div>
 
         <div style="margin-top:10px">
-          <input id="pseudo" class="input" type="text" placeholder="Pseudo (obligatoire à l'inscription)">
+          <input id="pseudo" class="input" type="text" placeholder="Pseudo (obligatoire à l'inscription)" />
         </div>
 
         <div style="margin-top:8px; display:flex; gap:8px;">
@@ -60,134 +69,217 @@
     </div>
   </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+  <!-- petit handler de TEST (non-module) : permet de vérifier que les boutons réagissent même si Firebase n'arrive pas -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // handlers de test : seront remplacés si Firebase se charge
+      const testPrimary = () => alert('Test : le script se lance. Si tu vois ça, le JS est exécuté.');
+      const testToggle = () => alert('Test : toggle cliqué (mode bascule)');
+      const testInfo = () => alert('Info : Veuillez entrer la clé de sécurité que Kenzo.S vous a donnée.');
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
-  authDomain: "laclassedefou.firebaseapp.com",
-  projectId: "laclassedefou",
-  storageBucket: "laclassedefou.firebasestorage.app",
-  messagingSenderId: "625518146786",
-  appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
-  measurementId: "G-DP9HJXJGTC"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+      const primaryBtn = document.getElementById('primaryBtn');
+      const toggleBtn = document.getElementById('toggleBtn');
+      const infoBtn = document.getElementById('loginInfo');
 
-const emailEl = document.getElementById('email');
-const pwEl = document.getElementById('password');
-const pseudoEl = document.getElementById('pseudo');
-const primaryBtn = document.getElementById('primaryBtn');
-const toggleBtn = document.getElementById('toggleBtn');
-const msgEl = document.getElementById('message');
-const resendBtn = document.getElementById('resendBtn');
-const checkedBtn = document.getElementById('checkedBtn');
-const cancelCheck = document.getElementById('cancelCheck');
-const verifyControls = document.getElementById('verifyControls');
-const infoBtn = document.getElementById('loginInfo');
+      // attacher uniquement si pas d'autre listener (au cas où)
+      primaryBtn.addEventListener('click', testPrimary);
+      toggleBtn.addEventListener('click', testToggle);
+      infoBtn.addEventListener('click', testInfo);
 
-let isLogin = false;
-let poll = null;
+      console.log('[login] test handlers attached — they will be replaced when Firebase module loads.');
+    });
+  </script>
 
-function show(text, type='error', withControls=false){
-  msgEl.style.display='block';
-  msgEl.className = 'message ' + (type === 'error' ? 'error' : 'success');
-  msgEl.innerText = text;
-  verifyControls.style.display = withControls ? 'block' : 'none';
-}
-function clearMsg(){ msgEl.style.display='none'; verifyControls.style.display='none'; }
+  <!-- logique principale (module) -->
+  <script type="module">
+  (async () => {
+    try {
+      // imports Firebase
+      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js');
+      const authModule = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js');
+      const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js');
 
-infoBtn.addEventListener('click', ()=> alert("Veuillez entrer la clé de sécurité que Kenzo.S vous a donnée."));
+      const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged,
+              updateProfile, sendEmailVerification, signOut } = authModule;
+      const { getFirestore, doc, setDoc, getDoc } = firestoreModule;
 
-toggleBtn.addEventListener('click', ()=>{
-  isLogin = !isLogin;
-  primaryBtn.innerText = isLogin ? 'Se connecter' : 'Créer un compte';
-  toggleBtn.innerText = isLogin ? 'Pas encore de compte ?' : 'Déjà un compte ?';
-  clearMsg();
-});
+      console.log('[login] firebase modules imported');
 
-primaryBtn.addEventListener('click', async ()=>{
-  clearMsg();
-  const email = (emailEl.value||'').trim();
-  const pw = pwEl.value || '';
-  const pseudo = (pseudoEl.value||'').trim();
+      // firebase config — SAFE to be public (client-side)
+      const firebaseConfig = {
+        apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+        authDomain: "laclassedefou.firebaseapp.com",
+        projectId: "laclassedefou",
+        storageBucket: "laclassedefou.firebasestorage.app",
+        messagingSenderId: "625518146786",
+        appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+        measurementId: "G-DP9HJXJGTC"
+      };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
-  if(!email || !pw){ show('Email et mot de passe requis.', 'error'); return; }
-  if(!isLogin && !pseudo){ show('Le pseudo est obligatoire à l\'inscription.', 'error'); return; }
+      // DOM
+      const emailEl = document.getElementById('email');
+      const pwEl = document.getElementById('password');
+      const pseudoEl = document.getElementById('pseudo');
+      let primaryBtn = document.getElementById('primaryBtn');
+      let toggleBtn = document.getElementById('toggleBtn');
+      const msgEl = document.getElementById('message');
+      const resendBtn = document.getElementById('resendBtn');
+      const checkedBtn = document.getElementById('checkedBtn');
+      const cancelCheck = document.getElementById('cancelCheck');
+      const verifyControls = document.getElementById('verifyControls');
+      const infoBtn = document.getElementById('loginInfo');
 
-  primaryBtn.disabled = true;
-  try{
-    if(isLogin){
-      const cred = await signInWithEmailAndPassword(auth, email, pw);
-      if(!cred.user.emailVerified){
-        show('Email de confirmation envoyé. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur "C\\'est fait".', 'error', true);
-        startPolling();
-        return;
+      // remove previous test listeners by replacing nodes (clean)
+      const replaceNode = id => {
+        const old = document.getElementById(id);
+        if (!old) return null;
+        const copy = old.cloneNode(true);
+        old.parentNode.replaceChild(copy, old);
+        return document.getElementById(id);
+      };
+      primaryBtn = replaceNode('primaryBtn');
+      toggleBtn = replaceNode('toggleBtn');
+      // info button replaced too
+      replaceNode('loginInfo');
+
+      let isLogin = false;
+      let poll = null;
+
+      function logDebug(...args){ console.log('[login]', ...args); }
+
+      function show(text, type='error', withControls=false){
+        msgEl.style.display = 'block';
+        msgEl.className = 'message ' + (type === 'error' ? 'error' : 'success');
+        msgEl.textContent = text;
+        verifyControls.style.display = withControls ? 'block' : 'none';
       }
-      window.location.href = 'home.html';
-    } else {
-      const cred = await createUserWithEmailAndPassword(auth, email, pw);
-      const user = cred.user;
-      await updateProfile(user, { displayName: pseudo });
-      await setDoc(doc(db,'users',user.uid), { pseudo: pseudo, lastname: '', email: email }, { merge: true });
-      await sendEmailVerification(user);
-      show(`Email de confirmation envoyé à ${email}. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur "C\\'est fait".`, 'success', true);
-      startPolling();
-      return;
+      function clearMsg(){ msgEl.style.display = 'none'; msgEl.textContent = ''; verifyControls.style.display = 'none'; }
+
+      // info
+      document.getElementById('loginInfo').addEventListener('click', () => {
+        alert('Veuillez entrer la clé de sécurité que Kenzo.S vous a donnée.');
+      });
+
+      toggleBtn.addEventListener('click', () => {
+        isLogin = !isLogin;
+        primaryBtn.textContent = isLogin ? 'Se connecter' : 'Créer un compte';
+        toggleBtn.textContent = isLogin ? 'Pas encore de compte ?' : 'Déjà un compte ?';
+        clearMsg();
+      });
+
+      primaryBtn.addEventListener('click', async () => {
+        clearMsg();
+        const email = (emailEl.value||'').trim();
+        const pw = pwEl.value || '';
+        const pseudo = (pseudoEl.value||'').trim();
+
+        if(!email || !pw){ show('Email et mot de passe requis.', 'error'); return; }
+        if(!isLogin && !pseudo){ show("Le pseudo est obligatoire à l'inscription.", 'error'); return; }
+
+        primaryBtn.disabled = true;
+        try {
+          if (isLogin) {
+            logDebug('Tentative connexion', email);
+            const cred = await signInWithEmailAndPassword(auth, email, pw);
+            const user = cred.user;
+            logDebug('Connexion OK', user.uid, 'emailVerified=', user.emailVerified);
+            await user.getIdToken(true);
+            if (!user.emailVerified) {
+              show("Email non vérifié. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur \"C'est fait\".", 'error', true);
+              startPolling();
+              return;
+            }
+            window.location.href = 'home.html';
+          } else {
+            logDebug('Création compte', email);
+            const cred = await createUserWithEmailAndPassword(auth, email, pw);
+            const user = cred.user;
+            logDebug('Compte créé', user.uid);
+            await updateProfile(user, { displayName: pseudo });
+            await setDoc(doc(db,'users',user.uid), { pseudo: pseudo, lastname: '', email: email }, { merge: true });
+            await sendEmailVerification(user);
+            show(`Email de confirmation envoyé à ${email}. Vérifie ta boîte mail. Si après confirmation ça ne marche pas, clique sur "C'est fait".`, 'success', true);
+            startPolling();
+            return;
+          }
+        } catch (e) {
+          console.error('Firebase error:', e);
+          const code = e.code || '';
+          const mapping = {
+            'auth/email-already-in-use': "Cet email est déjà utilisé.",
+            'auth/invalid-email': "Adresse email invalide.",
+            'auth/weak-password': "Mot de passe trop faible (6+ caractères).",
+            'auth/user-not-found': "Aucun compte trouvé.",
+            'auth/wrong-password': "Mot de passe incorrect.",
+            'auth/too-many-requests': "Trop de tentatives, réessaie plus tard."
+          };
+          show(mapping[code] || (e.message || 'Erreur inconnue. Voir console.'), 'error');
+        } finally {
+          primaryBtn.disabled = false;
+        }
+      });
+
+      function startPolling(){
+        stopPolling();
+        poll = setInterval(async ()=>{
+          try{
+            if(!auth.currentUser) return;
+            await auth.currentUser.reload();
+            logDebug('poll: emailVerified=', auth.currentUser.emailVerified);
+            if(auth.currentUser.emailVerified){
+              stopPolling();
+              show('Email vérifié — redirection…', 'success');
+              setTimeout(()=> window.location.href = 'home.html', 700);
+            }
+          }catch(err){ console.error('Polling error', err); }
+        }, 3000);
+      }
+      function stopPolling(){ if(poll){ clearInterval(poll); poll = null; } }
+
+      resendBtn.addEventListener('click', async ()=> {
+        clearMsg();
+        if(!auth.currentUser) { show("Reconnecte-toi puis renvoie l'email.", 'error'); return; }
+        try{ await sendEmailVerification(auth.currentUser); show('Email renvoyé.', 'success', true); } catch(e){ console.error(e); show('Erreur en renvoyant.', 'error', true); }
+      });
+
+      checkedBtn.addEventListener('click', async ()=> {
+        clearMsg();
+        if(!auth.currentUser){ show("Tu n'es pas connecté.", 'error'); return; }
+        try{
+          await auth.currentUser.reload();
+          if(auth.currentUser.emailVerified){ stopPolling(); show('Email vérifié — redirection…', 'success'); setTimeout(()=> window.location.href = 'home.html', 600); }
+          else show("Toujours pas vérifié. Vérifie le lien reçu par mail puis réessaie.", 'error', true);
+        }catch(e){ console.error(e); show('Erreur lors de la vérification. Voir console.', 'error', true); }
+      });
+
+      cancelCheck.addEventListener('click', ()=> { stopPolling(); clearMsg(); });
+
+      onAuthStateChanged(auth, async (user) => {
+        logDebug('onAuthStateChanged', user ? user.uid : null);
+        if(user){
+          try{ await user.reload(); } catch(e){ console.warn('reload failed', e); }
+          if(user.emailVerified){ window.location.href = 'home.html'; }
+          else { show("Ton email n'est pas vérifié. Vérifie ta boîte mail puis clique sur \"C'est fait\".", 'error', true); startPolling(); }
+        }
+      });
+
+      // accessibility: Enter submits
+      [emailEl, pwEl, pseudoEl].forEach(el => { el.addEventListener('keydown', (e) => { if(e.key === 'Enter') primaryBtn.click(); }); });
+
+      console.log('[login] Firebase logic ready.');
+    } catch (err) {
+      // Si import ou autre échoue, on le logue clairement.
+      console.error('[login] Erreur en important/initialisant Firebase ou dans le script :', err);
+      // On garde les handlers de test pour que l'utilisateur sache que les boutons répondent.
+      const msgEl = document.getElementById('message');
+      msgEl.style.display = 'block';
+      msgEl.className = 'message error';
+      msgEl.textContent = "Erreur technique : impossible de charger Firebase. Vérifie la console (F12).";
     }
-  }catch(e){
-    const code = e.code || '';
-    const map = {
-      'auth/email-already-in-use': "Cet email est déjà utilisé.",
-      'auth/invalid-email': "Adresse email invalide.",
-      'auth/weak-password': "Mot de passe trop faible (6+ caractères).",
-      'auth/user-not-found': "Aucun compte trouvé.",
-      'auth/wrong-password': "Mot de passe incorrect.",
-      'auth/too-many-requests': "Trop de tentatives, réessaie plus tard."
-    };
-    show(map[code] || (e.message || 'Erreur.'), 'error');
-  } finally { primaryBtn.disabled = false; }
-});
-
-function startPolling(){
-  stopPolling();
-  poll = setInterval(async ()=>{
-    if(!auth.currentUser) return;
-    await auth.currentUser.reload();
-    if(auth.currentUser.emailVerified){
-      stopPolling();
-      show('Email vérifié ✅ — redirection…', 'success');
-      setTimeout(()=> window.location.href = 'home.html', 700);
-    }
-  }, 3000);
-}
-function stopPolling(){ if(poll){ clearInterval(poll); poll = null; } }
-
-resendBtn.addEventListener('click', async ()=> {
-  if(!auth.currentUser) { show('Reconnecte-toi puis renvoie l\\'email.', 'error'); return; }
-  try{ await sendEmailVerification(auth.currentUser); show('Email renvoyé.', 'success', true); } catch(e){ show('Erreur en renvoyant.', 'error', true); }
-});
-checkedBtn.addEventListener('click', async ()=> {
-  if(!auth.currentUser){ show('Tu n\\'es pas connecté.', 'error'); return; }
-  await auth.currentUser.reload();
-  if(auth.currentUser.emailVerified){ stopPolling(); show('Email vérifié ✅ — redirection…', 'success'); setTimeout(()=> window.location.href='home.html',600); }
-  else show('Toujours pas vérifié. Vérifie le lien reçu par mail puis réessaie.', 'error', true);
-});
-cancelCheck.addEventListener('click', ()=> { stopPolling(); clearMsg(); });
-
-onAuthStateChanged(auth, async user => {
-  if(user){
-    await user.reload();
-    if(user.emailVerified) window.location.href = 'home.html';
-    else show('Ton email n\\'est pas vérifié. Vérifie ta boîte mail puis clique sur "C\\'est fait".', 'error', true);
-  }
-});
-
-[emailEl, pwEl, pseudoEl].forEach(i => i.addEventListener('keydown', e => { if(e.key === 'Enter') primaryBtn.click(); }));
-</script>
+  })();
+  </script>
 </body>
 </html>
