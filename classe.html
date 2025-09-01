@@ -9,8 +9,7 @@
     --bg: linear-gradient(135deg,#6a11cb,#2575fc);
     --glass: rgba(255,255,255,0.03);
     --muted: rgba(238,242,255,0.8);
-    --radius:12px;
-    font-family:Inter,Arial,sans-serif;
+    --radius:12px; font-family:Inter,Arial,sans-serif;
   }
   body{margin:0;background:var(--bg);color:white}
   .wrap{max-width:1000px;margin:14px auto;padding:12px}
@@ -18,16 +17,14 @@
   .btn{padding:8px 12px;border-radius:10px;border:none;background:linear-gradient(90deg,#7f5af0,#6a11cb);cursor:pointer;color:white;font-weight:600}
   .card{background:var(--glass);border-radius:12px;padding:12px;margin-top:12px;min-height:60vh;display:flex;flex-direction:column}
   .messages{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03)}
+  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;position:relative}
   .msg.me{align-self:flex-end;background:linear-gradient(90deg,#7f5af0,#6a11cb)}
   .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
   .composer{display:flex;gap:8px;padding-top:10px}
-  .input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white}
-  .members{margin-top:12px;padding:10px;background:rgba(0,0,0,0.06);border-radius:10px}
-  @media (max-width:600px){
-    .wrap{padding:8px}
-    .card{min-height:60vh}
-  }
+  .input{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:white;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,0.25)}
+  .members{margin-top:12px;padding:10px;background:rgba(0,0,0,0.06);border-radius:10px;max-height:420px;overflow:auto}
+  .small{color:var(--muted)}
+  .report-badge{position:absolute;right:8px;top:8px;background:rgba(255,80,80,0.12);color:#ffb4b4;padding:4px 6px;border-radius:8px;font-size:12px}
 </style>
 </head>
 <body>
@@ -37,23 +34,23 @@
         <h2 id="classeTitle" style="margin:0">Classe</h2>
         <div id="classeSub" class="small" style="color:var(--muted)">Chargement…</div>
       </div>
-      <div>
-        <button class="btn" onclick="location.href='home.html'">Accueil</button>
-      </div>
+      <div><button class="btn" onclick="location.href='home.html'">Accueil</button></div>
     </div>
 
     <div class="card">
       <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div style="flex:1;min-width:280px">
-          <div id="messages" class="messages"></div>
+          <div id="messages" class="messages" aria-live="polite"></div>
 
-          <div class="composer">
+          <div id="composerWrap" style="display:none" class="composer">
             <input id="textInput" class="input" placeholder="Écrire un message..." />
             <button id="sendBtn" class="btn">Envoyer</button>
           </div>
+
+          <div id="viewOnly" style="display:none;color:var(--muted);padding:12px;background:rgba(0,0,0,0.06);border-radius:8px;margin-top:12px">Tu peux voir les membres mais pas écrire dans le chat de cette classe.</div>
         </div>
 
-        <div style="width:260px;min-width:220px">
+        <div style="width:280px;min-width:220px">
           <div style="font-weight:700">Membres de la classe</div>
           <div id="members" class="members">Chargement...</div>
         </div>
@@ -61,10 +58,23 @@
     </div>
   </div>
 
+<!-- report modal (same as general) -->
+<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center">
+  <div style="background:white;color:black;padding:16px;border-radius:10px;min-width:280px">
+    <h3 style="margin-top:0">Signaler le message</h3>
+    <div id="reportMsgPreview" style="margin-bottom:8px;color:#333"></div>
+    <textarea id="reportReason" placeholder="Raison du signalement" style="width:100%;height:80px;border-radius:8px;padding:8px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+      <button id="reportCancel" style="padding:8px 10px;border-radius:8px">Annuler</button>
+      <button id="reportSend" style="padding:8px 10px;border-radius:8px;background:#ff6b6b;color:white">Envoyer</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { getFirestore, collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
@@ -85,100 +95,136 @@ const sendBtn = document.getElementById('sendBtn');
 const membersEl = document.getElementById('members');
 const classeTitle = document.getElementById('classeTitle');
 const classeSub = document.getElementById('classeSub');
+const composerWrap = document.getElementById('composerWrap');
+const viewOnly = document.getElementById('viewOnly');
 
 function qs(name){ return new URLSearchParams(location.search).get(name); }
-let classeParam = qs('class'); // prefer URL param
+let classeParam = qs('class');
+let viewMode = qs('view'); // 'members' => only members
 let myUid = null;
 let myName = '';
 let isAdmin = false;
 
-onAuthStateChanged(auth, async user => {
-  if(!user) { location.href='login.html'; return; }
-  myUid = user.uid;
-  myName = user.displayName || '';
+const BLACKLIST = ['connard','merde','putain','sale','nique'];
+function maskBadWords(txt){
+  let t = txt;
+  BLACKLIST.forEach(w=>{
+    const rx = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','gi');
+    t = t.replace(rx, (m)=> '#'.repeat(m.length));
+  });
+  return t;
+}
 
-  // if no class param, get from users doc
+// report modal
+const reportModal = document.getElementById('reportModal');
+const reportMsgPreview = document.getElementById('reportMsgPreview');
+const reportReason = document.getElementById('reportReason');
+const reportCancel = document.getElementById('reportCancel');
+const reportSend = document.getElementById('reportSend');
+let currentReportTarget = null;
+
+onAuthStateChanged(auth, async user => {
+  if(!user){ location.href='login.html'; return; }
+  myUid = user.uid; myName = user.displayName || '';
+  try{ const token = await user.getIdTokenResult(); isAdmin = !!(token.claims && token.claims.admin); }catch(e){}
+
+  // if class not provided in URL, fetch from users doc
   if(!classeParam){
     try{
-      const udoc = await (await db.getDoc ? db.getDoc(doc(db,'users',myUid)) : null);
-    }catch(e){
-      // fallback to fetch
-    }
-    // safer: fetch users doc explicitly using getDocs on users collection is heavy; we will try getDoc
-    try{
-      const userDocRef = doc(db,'users', myUid);
-      const userSnap = await (await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js')).getDoc(userDocRef);
-      if(userSnap && userSnap.exists()){
-        classeParam = userSnap.data().classe || classeParam;
-      }
+      const uRef = doc(db,'users', myUid);
+      const uSnap = await (await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js')).getDoc(uRef);
+      if(uSnap && uSnap.exists()) classeParam = uSnap.data().classe || classeParam;
     }catch(e){}
   }
 
   if(!classeParam){
     classeTitle.innerText = 'Classe non sélectionnée';
-    classeSub.innerText = 'Aucune classe fournie. Accède au tableau pour choisir.';
+    classeSub.innerText = 'Aucune classe fournie';
     messagesEl.innerHTML = '<div style="color:#ffd369">Tu n\'as pas de classe — impossible d\'afficher le chat de classe.</div>';
+    membersEl.innerText = 'Aucun membre';
     return;
   }
 
   classeTitle.innerText = `Classe ${classeParam}`;
   classeSub.innerText = `Chat privé pour la classe ${classeParam}`;
 
-  // check admin
-  try{
-    const token = await user.getIdTokenResult();
-    isAdmin = !!(token.claims && token.claims.admin);
-  }catch(e){ console.warn(e); }
-
-  // subscribe to messages for this class
-  const q = query(collection(db,'messages'), where('classe','==',classeParam), orderBy('createdAt'));
-  onSnapshot(q, snap => {
-    messagesEl.innerHTML = '';
-    snap.forEach(d => {
-      const m = d.data();
-      const id = d.id;
-      const div = document.createElement('div');
-      div.className = 'msg' + (m.uid === myUid ? ' me' : '');
-      const meta = document.createElement('div'); meta.className = 'meta';
-      const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
-      const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
-      meta.textContent = `${who} • ${time}`;
-      const body = document.createElement('div'); body.textContent = m.text || '';
-      div.appendChild(meta); div.appendChild(body);
-      if(isAdmin){
-        const del = document.createElement('button'); del.textContent='Suppr'; del.className='btn'; del.style.marginTop='6px';
-        del.onclick = async ()=>{ if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'messages',id)); };
-        div.appendChild(del);
-      }
-      messagesEl.appendChild(div);
-    });
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  });
-
-  // load members list
+  // load members always
   try{
     const q2 = query(collection(db,'users'), where('classe','==',classeParam));
     const snaps = await getDocs(q2);
     if(snaps.empty){ membersEl.innerHTML = '<div class="small" style="color:#ffd369">Aucun membre trouvé</div>'; }
     else {
       const list = [];
-      snaps.forEach(d => { const dat = d.data(); list.push(`${dat.prenom || dat.pseudo || dat.displayName || ''} ${dat.nom || ''}`.trim()); });
+      snaps.forEach(d => { const dat = d.data(); list.push(`${dat.prenom || dat.pseudo || ''} ${dat.nom || ''}`.trim()); });
       membersEl.innerHTML = '<ul style="padding-left:16px;margin:0;">' + list.map(n=>`<li>${n || '(anonyme)'}</li>`).join('') + '</ul>';
     }
   }catch(e){ console.error(e); membersEl.innerText = 'Erreur en chargeant les membres.'; }
 
+  // decide if user can read/write the chat
+  // allow if user.classe == classeParam OR admin
+  let userClasse = '';
+  try{
+    const uRef = doc(db,'users', myUid);
+    const uSnap = await (await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js')).getDoc(uRef);
+    if(uSnap && uSnap.exists()) userClasse = (uSnap.data().classe||'').toUpperCase();
+  }catch(e){ console.warn(e); }
+
+  const canChat = (isAdmin || (userClasse && userClasse.toUpperCase() === classeParam.toUpperCase()));
+  if(!canChat){
+    // view-only mode
+    composerWrap.style.display = 'none';
+    viewOnly.style.display = 'block';
+    // still show members, but hide messages (or show non interactive)
+    messagesEl.innerHTML = '<div class="small" style="color:var(--muted)">Tu ne peux pas voir/écrire les messages de cette classe car tu n\'en fais pas partie.</div>';
+    return;
+  } else {
+    composerWrap.style.display = 'flex';
+    viewOnly.style.display = 'none';
+  }
+
+  // if canChat -> subscribe to messages for class
+  const q = query(collection(db,'messages'), where('classe','==',classeParam), orderBy('createdAt'));
+  onSnapshot(q, snap => {
+    messagesEl.innerHTML = '';
+    snap.forEach(d=>{
+      const m = d.data(); const id = d.id;
+      const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const who = m.displayName || m.prenom || m.pseudo || m.email || 'Anonyme';
+      const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
+      meta.textContent = `${who} • ${time}`;
+      const body = document.createElement('div'); body.textContent = m.text || '';
+      el.appendChild(meta); el.appendChild(body);
+
+      if(m._reported){ const badge = document.createElement('div'); badge.className='report-badge'; badge.textContent='Signalé'; el.appendChild(badge); }
+      if(isAdmin){
+        const del = document.createElement('button'); del.textContent='Suppr'; del.style.marginTop='8px'; del.className='btn';
+        del.onclick = async (ev)=>{ ev.stopPropagation(); if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'messages',id)); };
+        el.appendChild(del);
+      }
+
+      el.addEventListener('click', ()=> {
+        currentReportTarget = { id, data: m };
+        reportMsgPreview.textContent = `${who}: ${m.text || ''}`;
+        reportReason.value = ''; reportModal.style.display='flex';
+      });
+
+      messagesEl.appendChild(el);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
 });
 
 // send message
-sendBtn.addEventListener('click', async ()=>{
-  const txt = (textInput.value||'').trim();
-  if(!txt) return;
+async function sendMessage(){
+  const raw = (textInput.value||'').trim();
+  if(!raw) return;
   const user = auth.currentUser;
   if(!user){ alert('Reconnecte-toi'); return; }
-  if(!classeParam){ alert('Pas de classe'); return; }
+  const text = maskBadWords(raw);
   try{
     await addDoc(collection(db,'messages'), {
-      text: txt,
+      text,
       uid: user.uid,
       displayName: user.displayName || '',
       prenom: '',
@@ -188,9 +234,31 @@ sendBtn.addEventListener('click', async ()=>{
     });
     textInput.value = '';
   }catch(e){ console.error(e); alert('Erreur'); }
-});
+}
+sendBtn.addEventListener('click', sendMessage);
+textInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
 
-textInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendBtn.click(); });
+// report modal actions same as general
+reportCancel.addEventListener('click', ()=> reportModal.style.display='none');
+reportSend.addEventListener('click', async ()=>{
+  const reason = (reportReason.value||'').trim();
+  if(!reason){ alert('Donne une raison.'); return; }
+  if(!currentReportTarget){ alert('Aucun message sélectionné.'); reportModal.style.display='none'; return; }
+  try{
+    await addDoc(collection(db,'reports'), {
+      messageId: currentReportTarget.id,
+      message: currentReportTarget.data,
+      reporterUid: auth.currentUser.uid,
+      reporterEmail: auth.currentUser.email,
+      reason,
+      createdAt: serverTimestamp(),
+      classe: currentReportTarget.data.classe || ''
+    });
+    await setDoc(doc(db,'reports_meta', currentReportTarget.id), { reported: true }, { merge: true });
+    reportModal.style.display='none';
+    alert('Signalement envoyé. Merci.');
+  }catch(e){ console.error(e); alert('Erreur lors du signalement.'); }
+});
 </script>
 </body>
 </html>
