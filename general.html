@@ -61,8 +61,21 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  deleteDoc,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
+// config (client-safe)
 const firebaseConfig = {
   apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
   authDomain: "laclassedefou.firebaseapp.com",
@@ -72,16 +85,17 @@ const firebaseConfig = {
   appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
   measurementId: "G-DP9HJXJGTC"
 };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+initializeApp(firebaseConfig);
+
+const auth = getAuth();
+const db = getFirestore();
 
 const messagesEl = document.getElementById('messages');
 const textEl = document.getElementById('text');
 const sendBtn = document.getElementById('send');
 
-// blacklist (exemples) — tu peux ajouter/éditer
-const BLACKLIST = ['connard','merde','putain','sale','nique']; // mets des mots en minuscules
+// blacklist (exemples)
+const BLACKLIST = ['connard','merde','putain','sale','nique'];
 function maskBadWords(txt){
   let t = txt;
   BLACKLIST.forEach(w=>{
@@ -95,27 +109,22 @@ let myUid = null;
 let myName = '';
 let isAdmin = false;
 
-// report modal elements
+// report modal elems
 const reportModal = document.getElementById('reportModal');
 const reportMsgPreview = document.getElementById('reportMsgPreview');
 const reportReason = document.getElementById('reportReason');
 const reportCancel = document.getElementById('reportCancel');
 const reportSend = document.getElementById('reportSend');
 
-let lastSnapshot = null; // store for reporting
 let currentReportTarget = null;
 
-onAuthStateChanged(auth, async user => {
-  if(!user) { location.href='login.html'; return; }
-  myUid = user.uid;
-  myName = user.displayName || '';
-
-  try{ const tr = await user.getIdTokenResult(); isAdmin = !!(tr.claims && tr.claims.admin);}catch(e){}
-
-  const q = query(collection(db,'messages'), orderBy('createdAt'));
+// IMPORTANT FIX: only listen to messages with classe == "Général"
+function subscribeGlobal(){
+  // note: use where to filter by classe
+  const q = query(collection(db,'messages'), where('classe','==','Général'), orderBy('createdAt'));
   onSnapshot(q, snap => {
     messagesEl.innerHTML = '';
-    lastSnapshot = snap;
+    console.log('[general] snapshot size', snap.size);
     snap.forEach(d => {
       const m = d.data(); const id = d.id;
       const el = document.createElement('div'); el.className = 'msg' + (m.uid === myUid ? ' me' : '');
@@ -126,17 +135,16 @@ onAuthStateChanged(auth, async user => {
       const body = document.createElement('div'); body.textContent = m.text || '';
       el.appendChild(meta); el.appendChild(body);
 
-      // mark reported
+      // show reported badge if there's a meta doc (reports_meta) OR message has _reported
       if(m._reported){ el.classList.add('reported'); const badge = document.createElement('div'); badge.className='report-badge'; badge.textContent='Signalé'; el.appendChild(badge); }
 
-      // admin delete button inline
       if(isAdmin){
         const del = document.createElement('button'); del.textContent='Suppr'; del.style.marginTop='8px'; del.className='btn';
         del.onclick = async (ev)=>{ ev.stopPropagation(); if(!confirm('Supprimer ce message ?')) return; await deleteDoc(doc(db,'messages',id)); };
         el.appendChild(del);
       }
 
-      // click to report (open modal)
+      // click to report
       el.addEventListener('click', (ev)=>{
         ev.stopPropagation();
         currentReportTarget = { id, data: m };
@@ -148,17 +156,28 @@ onAuthStateChanged(auth, async user => {
       messagesEl.appendChild(el);
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
+  }, err => {
+    console.error('[general] snapshot error', err);
   });
+}
+
+onAuthStateChanged(auth, async user => {
+  if(!user){ location.href='login.html'; return; }
+  myUid = user.uid;
+  myName = user.displayName || '';
+  try{ const tr = await user.getIdTokenResult(); isAdmin = !!(tr.claims && tr.claims.admin);}catch(e){ console.warn(e); }
+
+  console.log('[general] user ready', myUid, 'admin=', isAdmin);
+  subscribeGlobal();
 });
 
-// send message (global chat)
+// send message (global)
 async function sendMessage(){
   const raw = (textEl.value||'').trim();
   if(!raw) return;
   const user = auth.currentUser;
   if(!user) { alert('Reconnecte-toi'); return; }
 
-  // mask bad words
   const text = maskBadWords(raw);
   try{
     await addDoc(collection(db,'messages'), {
@@ -167,7 +186,7 @@ async function sendMessage(){
       displayName: user.displayName || '',
       prenom: '',
       email: user.email || '',
-      classe: 'Général',
+      classe: 'Général',            // << important : always mark 'Général'
       createdAt: serverTimestamp()
     });
     textEl.value = '';
@@ -193,8 +212,9 @@ reportSend.addEventListener('click', async ()=>{
       createdAt: serverTimestamp(),
       classe: currentReportTarget.data.classe || ''
     });
-    // mark message as reported flag (helps show badge) — note: only admin/server side should normally set _reported, but client can set a flag in a separate collection; here we set a small flag document
+    // set a small meta flag so clients can show a badge (optional)
     await setDoc(doc(db,'reports_meta', currentReportTarget.id), { reported: true }, { merge: true });
+    // Optionally: mark message doc (admin only usually) - not done here
     reportModal.style.display = 'none';
     alert('Signalement envoyé. Merci.');
   }catch(e){ console.error(e); alert('Erreur lors du signalement.'); }
