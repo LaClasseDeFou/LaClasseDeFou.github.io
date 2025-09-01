@@ -21,9 +21,7 @@
   .className{font-weight:700;font-size:16px}
   .count{color:var(--muted);font-size:13px}
   .empty{color:var(--muted)}
-  @media (max-width:600px){
-    .top{flex-direction:column;align-items:stretch}
-  }
+  @media (max-width:600px){ .top{flex-direction:column;align-items:stretch} }
 </style>
 </head>
 <body>
@@ -31,11 +29,9 @@
     <div class="top">
       <div>
         <h2 style="margin:0">Tableau des classes</h2>
-        <div class="small" style="color:var(--muted)">Clique sur une classe pour ouvrir sa page.</div>
+        <div style="color:var(--muted)">Voir les membres. Ouvrir le chat seulement si tu appartiens à la classe (ou si tu es admin).</div>
       </div>
-      <div>
-        <button class="btn" onclick="location.href='home.html'">Retour</button>
-      </div>
+      <div><button class="btn" onclick="location.href='home.html'">Retour</button></div>
     </div>
 
     <div id="grid" class="grid"></div>
@@ -60,7 +56,6 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 const GRID = document.getElementById('grid');
-
 const CLASSES = [
   '6A','6B','6C','6D','6E',
   '5A','5B','5C','5D','5E',
@@ -68,29 +63,54 @@ const CLASSES = [
   '3A','3B','3C','3D','3E'
 ];
 
-async function buildTable(){
+function uniqueCountByUid(docs){
+  const s = new Set();
+  docs.forEach(d=> s.add(d.id)); // each user doc id is uid
+  return s.size;
+}
+
+async function buildTable(currentUserUid, currentUserClasse, isAdmin){
   GRID.innerHTML = '<div style="color:var(--muted)">Chargement...</div>';
-  // get all users and group by classe
   try{
     const snap = await getDocs(collection(db,'users'));
-    const counts = {};
+    // group by classe, each doc id = uid so unique
+    const byClass = {};
     snap.forEach(d => {
-      const c = (d.data().classe||'').toUpperCase();
+      const c = (d.data().classe || '').toUpperCase();
       if(!c) return;
-      counts[c] = (counts[c]||0) + 1;
+      if(!byClass[c]) byClass[c] = [];
+      byClass[c].push(d.id);
     });
     GRID.innerHTML = '';
     CLASSES.forEach(c => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `<div class="className">${c}</div><div class="count">${counts[c] ? counts[c] + ' élèves' : '<span class="empty">0 élèves</span>'}</div><div style="margin-top:10px"><button class="btn" data-class="${c}">Ouvrir</button></div>`;
+      const count = byClass[c] ? new Set(byClass[c]).size : 0;
+      const card = document.createElement('div'); card.className='card';
+      card.innerHTML = `<div class="className">${c}</div><div class="count">${count ? count + ' élèves' : '<span class="empty">0 élèves</span>'}</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn" data-class="${c}" data-action="members">Voir membres</button>
+          <button class="btn" data-class="${c}" data-action="open" style="background:transparent;border:1px solid rgba(255,255,255,0.06)">Ouvrir chat</button>
+        </div>`;
       GRID.appendChild(card);
     });
-    // attach listeners
-    Array.from(document.querySelectorAll('[data-class]')).forEach(b=>{
-      b.addEventListener('click', ()=> {
-        const cls = b.getAttribute('data-class');
-        location.href = `classe.html?class=${encodeURIComponent(cls)}`;
+    // listeners
+    Array.from(document.querySelectorAll('[data-action]')).forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        const cls = btn.getAttribute('data-class');
+        const action = btn.getAttribute('data-action');
+        if(action === 'members'){
+          // open classe.html in view-members mode parameter
+          location.href = `classe.html?class=${encodeURIComponent(cls)}&view=members`;
+          return;
+        }
+        if(action === 'open'){
+          // if user belongs to this class or admin -> open chat
+          if(isAdmin || currentUserClasse === cls){
+            location.href = `classe.html?class=${encodeURIComponent(cls)}`;
+          } else {
+            alert("Tu ne peux pas ouvrir le chat de cette classe. Tu peux uniquement voir la liste des membres.");
+            location.href = `classe.html?class=${encodeURIComponent(cls)}&view=members`;
+          }
+        }
       });
     });
   }catch(e){
@@ -99,10 +119,18 @@ async function buildTable(){
   }
 }
 
-// redirect to login if not connected
-onAuthStateChanged(auth, user => {
-  if(!user) location.href='login.html';
-  else buildTable();
+// check auth and build table with user info
+onAuthStateChanged(auth, async user => {
+  if(!user) { location.href='login.html'; return; }
+  let classe = '';
+  let isAdmin = false;
+  try{
+    const uRef = (await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js')).doc(db,'users',user.uid);
+    const uSnap = await (await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js')).getDoc(uRef);
+    if(uSnap && uSnap.exists()) classe = (uSnap.data().classe||'').toUpperCase();
+  }catch(e){ console.warn(e); }
+  try{ const token = await user.getIdTokenResult(); isAdmin = !!(token.claims && token.claims.admin); }catch(e){}
+  buildTable(user.uid, classe, isAdmin);
 });
 </script>
 </body>
