@@ -1,59 +1,31 @@
-// --- REPORTS (à coller dans admin.html script) ---
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+<!-- Extrait JS à coller dans admin.html (dans <script type="module">) -->
+<script type="module">
+import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+const db = getFirestore();
 
-const reportsList = document.createElement('div');
-reportsList.id = 'reportsList';
-reportsList.style.marginTop = '12px';
-reportsList.innerHTML = '<strong>Signalements</strong><div id="reportsInner">Chargement…</div>';
-document.querySelector('.card').appendChild(reportsList); // adapte l'endroit selon ton layout
+// messagePath examples:
+// "general/<docId>"
+// "classes/3B/messages/<docId>"
 
-const reportsInner = document.getElementById('reportsInner');
-
-const reportsQuery = query(collection(db,'reports'), orderBy('createdAt','desc'));
-onSnapshot(reportsQuery, snap => {
-  reportsInner.innerHTML = '';
-  snap.forEach(rdoc => {
-    const r = rdoc.data();
-    const id = rdoc.id;
-    const box = document.createElement('div');
-    box.style.padding = '8px';
-    box.style.borderRadius = '8px';
-    box.style.background = 'rgba(0,0,0,0.06)';
-    box.style.marginBottom = '8px';
-    box.innerHTML = `
-      <div><strong>Message:</strong> ${escapeHtml((r.message && r.message.text) || '(vide)')}</div>
-      <div><small>Classe: ${r.classe || '—'} • Signalé par: ${r.reporterEmail || r.reporterUid} • ${r.createdAt ? new Date(r.createdAt.seconds*1000).toLocaleString() : ''}</small></div>
-      <div style="margin-top:6px"><strong>Raison:</strong> ${escapeHtml(r.reason)}</div>
-    `;
-    const actions = document.createElement('div');
-    actions.style.marginTop = '6px';
-    const removeMsgBtn = document.createElement('button');
-    removeMsgBtn.textContent = 'Supprimer message';
-    removeMsgBtn.className = 'btn';
-    removeMsgBtn.onclick = async () => {
-      if(!confirm('Supprimer le message signalé ?')) return;
-      try{
-        await deleteDoc(doc(db,'messages', r.messageId));
-        // optional: delete report doc as well
-        await deleteDoc(doc(db,'reports', id));
-        alert('Message supprimé et signalement effacé.');
-      }catch(e){ console.error(e); alert('Erreur. Voir console.'); }
-    };
-    const resolveBtn = document.createElement('button');
-    resolveBtn.textContent = 'Marquer résolu';
-    resolveBtn.className = 'btn ghost';
-    resolveBtn.style.marginLeft = '8px';
-    resolveBtn.onclick = async () => {
-      if(!confirm('Marquer ce signalement comme résolu (supprime le signalement) ?')) return;
-      try{ await deleteDoc(doc(db,'reports', id)); alert('Signalement supprimé.'); }catch(e){ console.error(e); alert('Erreur.'); }
-    };
-    actions.appendChild(removeMsgBtn); actions.appendChild(resolveBtn);
-    box.appendChild(actions);
-    reportsInner.appendChild(box);
-  });
-});
-
-function escapeHtml(s){
-  if(!s) return '';
-  return String(s).replace(/[&<>"'`=\/]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#96;','=':'&#61;'}[c]; });
+async function deleteByPath(messagePath){
+  const parts = messagePath.split('/').filter(Boolean);
+  if(parts.length % 2 !== 0){
+    // parts length should be even: collection/doc/collection/doc...
+    console.error('Invalid messagePath', messagePath);
+    return;
+  }
+  // build ref: doc(db, parts[0], parts[1], parts[2], parts[3], ...)
+  const args = [db];
+  for(const p of parts) args.push(p);
+  try{
+    await deleteDoc(doc(...args));
+    console.log('Message supprimé:', messagePath);
+  }catch(e){
+    console.error('Delete failed', e);
+    alert('Erreur suppression: ' + (e.message || e));
+  }
 }
+
+// Example: on click of "Supprimer message" button created from a report:
+// deleteByPath(report.messagePath);
+</script>
