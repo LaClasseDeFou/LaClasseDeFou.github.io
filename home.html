@@ -1,100 +1,81 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Accueil — LaClasse</title>
 <style>
-  :root{
-    --bg: linear-gradient(135deg,#6a11cb,#2575fc);
-    --card: rgba(255,255,255,0.04);
-    --muted: rgba(238,242,255,0.8);
-    --accent: #ffd369;
-    --glass: rgba(0,0,0,0.12);
-    --radius:14px;
-    --btn-bg: linear-gradient(90deg,#7f5af0,#6a11cb);
-    font-family: Inter, Arial, sans-serif;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:white;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1100px;margin:24px auto;padding:16px}
-  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-  .brand{display:flex;align-items:center;gap:12px}
-  .mark{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ff7a7a);display:flex;align-items:center;justify-content:center;color:#0f1724;font-weight:800}
-  .card{background:var(--card);padding:18px;border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.04)}
-  h1{margin:0;font-size:20px}
-  small{color:var(--muted)}
-  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .btn{padding:10px 14px;border-radius:10px;border:none;background:var(--btn-bg);cursor:pointer;color:white;font-weight:700}
-  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:white}
-  .btn.primary{background:var(--btn-bg)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px}
-  .tile{padding:14px;border-radius:12px;background:var(--glass);display:flex;flex-direction:column;gap:10px;min-height:120px}
-  .tile strong{font-size:16px}
-  .meta{color:var(--muted);font-size:13px}
-  .footer{margin-top:18px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-  /* responsive */
-  @media (max-width:600px){ .top{flex-direction:column;align-items:stretch} .actions{justify-content:space-between} }
+:root{
+  --bg:linear-gradient(135deg,#6a11cb,#2575fc);
+  --card:rgba(255,255,255,0.04);
+  --muted:rgba(238,242,255,0.8);
+  --primary:linear-gradient(90deg,#7f5af0,#6a11cb);
+  --accent:#ffd369;
+  --radius:12px; font-family:Inter,Arial,sans-serif;
+}
+body{margin:0;min-height:100vh;background:var(--bg);color:#eef2ff}
+.wrap{max-width:1100px;margin:20px auto;padding:18px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:56px;height:56px;border-radius:12px;background:var(--accent);color:#08121a;display:flex;align-items:center;justify-content:center;font-weight:800}
+.card{background:var(--card);padding:16px;border-radius:var(--radius);margin-top:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
+.tile{padding:14px;border-radius:12px;background:rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:8px}
+.btn{padding:10px 14px;border-radius:12px;border:none;background:var(--primary);color:white;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+.meta{color:var(--muted)}
+@media(max-width:600px){ .header{flex-direction:column;align-items:stretch} }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
+    <div class="header">
       <div class="brand">
-        <div class="mark">CL</div>
+        <div class="logo">CL</div>
         <div>
-          <h1 id="title">Bienvenue</h1>
-          <div id="subtitle" class="meta">Chargement…</div>
+          <div style="font-size:18px;font-weight:700">LaClasse</div>
+          <div class="meta">Ton espace de classe</div>
         </div>
       </div>
-
-      <div class="actions">
-        <button id="globalBtn" class="btn primary">Chat général</button>
-        <button id="classBtn" class="btn ghost">Chat de ma classe</button>
-        <button id="tableauBtn" class="btn ghost">Tableau des classes</button>
-        <button id="adminBtn" class="btn" style="display:none;background:var(--accent);color:#0f1724">Admin</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="adminBtn" class="btn" style="display:none;background:var(--accent);color:#08121a">Admin</button>
         <button id="logoutBtn" class="btn ghost">Se déconnecter</button>
       </div>
     </div>
 
     <div class="card">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div style="font-size:16px" id="helloLine">Chargement du profil…</div>
-          <div class="meta" id="classLine"></div>
+          <div style="font-size:16px;font-weight:700">Bienvenue</div>
+          <div id="sub" class="meta">Chargement du profil…</div>
         </div>
-        <div class="meta" id="infoText">Raccourci : accède au chat ou tableau</div>
+        <div id="profile" class="meta"></div>
       </div>
 
-      <div class="grid" style="margin-top:14px">
+      <div class="grid">
         <div class="tile">
           <strong>Chat général</strong>
-          <div class="meta">Discussion visible par tous.</div>
-          <div style="margin-top:auto"><button class="btn primary" onclick="location.href='general.html'">Ouvrir</button></div>
+          <div class="meta">Discussion commune.</div>
+          <div style="margin-top:auto"><button class="btn" onclick="location.href='general.html'">Ouvrir</button></div>
         </div>
 
         <div class="tile">
-          <strong>Chat de la classe</strong>
-          <div class="meta">Messages uniquement pour ta classe (lecture/écriture si tu y appartiens).</div>
+          <strong>Chat de ma classe</strong>
+          <div class="meta">Discussion privée selon ta classe.</div>
           <div style="margin-top:auto"><button id="openMyClass" class="btn ghost">Ouvrir</button></div>
         </div>
 
         <div class="tile">
           <strong>Tableau des classes</strong>
-          <div class="meta">Voir la liste et accéder aux membres.</div>
-          <div style="margin-top:auto"><button class="btn ghost" onclick="location.href='tableau.html'">Voir le tableau</button></div>
+          <div class="meta">Voir les listes.</div>
+          <div style="margin-top:auto"><button class="btn ghost" onclick="location.href='tableau.html'">Voir</button></div>
         </div>
 
         <div class="tile">
           <strong>Profil</strong>
-          <div class="meta">Prénom / Nom / Classe</div>
-          <div id="profileBox" style="margin-top:auto"></div>
+          <div id="profileBox" class="meta">—</div>
+          <div style="margin-top:auto"></div>
         </div>
-      </div>
-
-      <div class="footer">
-        <div>Connecté — <small id="emailLine"></small></div>
-        <div><small>Design responsive — PC & mobile</small></div>
       </div>
     </div>
   </div>
@@ -113,59 +94,49 @@ const firebaseConfig = {
   appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
   measurementId: "G-DP9HJXJGTC"
 };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
 
-const title = document.getElementById('title');
-const subtitle = document.getElementById('subtitle');
-const helloLine = document.getElementById('helloLine');
-const classLine = document.getElementById('classLine');
-const profileBox = document.getElementById('profileBox');
-const emailLine = document.getElementById('emailLine');
 const adminBtn = document.getElementById('adminBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const sub = document.getElementById('sub');
+const profileBox = document.getElementById('profileBox');
 const openMyClass = document.getElementById('openMyClass');
-
-document.getElementById('globalBtn').addEventListener('click', ()=> location.href='general.html');
-document.getElementById('classBtn').addEventListener('click', ()=> location.href='classe.html');
-document.getElementById('tableauBtn').addEventListener('click', ()=> location.href='tableau.html');
-document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth).then(()=> location.href='login.html'));
 
 onAuthStateChanged(auth, async user => {
   if(!user){ location.href='login.html'; return; }
-  try{ await user.getIdToken(true); } catch(e){ console.warn(e); }
+  sub.textContent = `Connecté : ${user.email}`;
+  profileBox.textContent = user.displayName || user.email;
 
-  title.innerText = user.displayName ? `Bienvenue, ${user.displayName}` : 'Bienvenue';
-  emailLine.innerText = user.email;
+  // refresh token to get claims
+  try{ await user.getIdToken(true); }catch(e){}
 
-  // fetch users doc for class/prenom
-  try{
-    const uSnap = await getDoc(doc(db,'users', user.uid));
-    if(uSnap.exists()){
-      const data = uSnap.data();
-      const classe = data.classe || '';
-      classLine.innerText = classe ? `Classe : ${classe}` : 'Aucune classe assignée';
-      profileBox.innerHTML = `<div><strong>${data.prenom || user.displayName || ''} ${data.nom || ''}</strong></div><div class="meta">${data.email || user.email}</div>`;
-      openMyClass.onclick = () => {
-        if(classe) location.href = `classe.html?class=${encodeURIComponent(classe)}`;
-        else alert("Tu n'as pas de classe. Contacte l'admin.");
-      };
-    } else {
-      classLine.innerText = 'Aucun profil trouvé';
-      profileBox.innerHTML = `<div class="meta">${user.email}</div>`;
-      openMyClass.onclick = () => alert("Pas de classe assignée.");
-    }
-  }catch(e){ console.error(e); }
-
-  // admin?
   try{
     const token = await user.getIdTokenResult();
     if(token.claims && token.claims.admin){
       adminBtn.style.display = 'inline-block';
       adminBtn.addEventListener('click', ()=> location.href='admin.html');
+    } else adminBtn.style.display = 'none';
+  }catch(e){ console.warn(e); }
+
+  // show profile and class if available
+  try{
+    const uSnap = await getDoc(doc(db,'users', user.uid));
+    if(uSnap.exists()){
+      const data = uSnap.data();
+      profileBox.innerHTML = `${data.prenom || user.displayName || ''} ${data.nom || ''}<div class="meta">Classe: ${data.classe || '—'}</div>`;
+      openMyClass.onclick = ()=> {
+        if(data.classe) location.href = `classe.html?class=${encodeURIComponent(data.classe)}`;
+        else alert('Aucune classe assignée');
+      };
+    } else {
+      openMyClass.onclick = ()=> alert('Aucun profil trouvé');
     }
-  }catch(e){ console.warn('claim check failed', e); }
+  }catch(e){ console.warn(e); }
 });
+
+logoutBtn.addEventListener('click', ()=> signOut(auth).then(()=> location.href='login.html'));
 </script>
 </body>
 </html>
