@@ -1,194 +1,215 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat de Classe</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-    header {
-      background: #009688;
-      color: #fff;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 14px;
-      margin: 5px 0;
-      color: #333;
-    }
-    .chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-    }
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      max-height: 420px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.06);
-    }
-    .message {
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-    .meta {
-      font-size: 12px;
-      color: #666;
-    }
-    form {
-      display: flex;
-      margin-top: 10px;
-      gap: 10px;
-    }
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #009688;
-      color: #fff;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #00695c;
-    }
-    .members {
-      padding: 10px;
-      background: #fff;
-      border-top: 1px solid #ddd;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chat de classe</title>
+<style>
+  :root{--bg:linear-gradient(135deg,#6a11cb,#2575fc);--card:rgba(255,255,255,0.04);--muted:rgba(238,242,255,0.8);--primary:linear-gradient(90deg,#7f5af0,#6a11cb);--radius:12px;font-family:Inter,Arial,sans-serif}
+  body{margin:0;min-height:100vh;background:var(--bg);color:#eef2ff}
+  .wrap{max-width:1100px;margin:18px auto;padding:16px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  h1{margin:0}
+  .card{background:var(--card);padding:16px;border-radius:var(--radius)}
+  .layout{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .left{flex:1;min-width:300px}
+  .right{width:300px;min-width:220px}
+  .messages{overflow-y:auto;max-height:420px;padding:12px;display:flex;flex-direction:column;gap:10px;border-radius:10px;background:rgba(0,0,0,0.06)}
+  .msg{padding:10px;border-radius:10px;background:rgba(255,255,255,0.02)}
+  .meta{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .composer{display:flex;gap:8px;margin-top:12px}
+  .input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+  .btn{padding:10px 14px;border-radius:10px;border:none;background:var(--primary);color:white;font-weight:700;cursor:pointer}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+  .members{padding:10px;border-radius:10px;background:rgba(0,0,0,0.04);max-height:420px;overflow:auto}
+  .notice{padding:10px;border-radius:8px;background:rgba(255,205,87,0.08);color:#fff7e6;margin-top:8px}
+</style>
 </head>
 <body>
-  <header>Chat de Classe</header>
-  <div class="subtitle" id="subtitle"></div>
-  <div class="chat-container">
-    <div class="messages" id="messages"></div>
-    <form id="chat-form">
-      <input type="text" id="messageInput" placeholder="Écris ton message..." required>
-      <button type="submit">Envoyer</button>
-    </form>
+  <div class="wrap">
+    <div class="top">
+      <div><h1>Chat de classe</h1><div id="sub" class="meta">Chargement…</div></div>
+      <div><button class="btn ghost" onclick="location.href='home.html'">Retour</button></div>
+    </div>
+
+    <div class="card">
+      <div class="layout">
+        <div class="left">
+          <div id="welcome" class="meta">Chargement du chat…</div>
+          <div id="messages" class="messages" aria-live="polite"></div>
+
+          <div id="composerWrap" class="composer" style="display:none">
+            <input id="textInput" class="input" placeholder="Écris ton message... (Enter pour envoyer)"/>
+            <button id="sendBtn" class="btn">Envoyer</button>
+          </div>
+
+          <div id="cantWrite" class="notice" style="display:none">Tu n'appartiens pas à cette classe — écriture désactivée.</div>
+        </div>
+
+        <div class="right">
+          <div><strong>Membres</strong></div>
+          <div id="members" class="members">Chargement...</div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="members">
-    <strong>Membres :</strong>
-    <ul id="memberList"></ul>
-  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot, doc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, serverTimestamp, query, orderBy, limit,
+  onSnapshot, getDoc, where, getDocs
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
-      authDomain: "laclassedefou.firebaseapp.com",
-      projectId: "laclassedefou",
-      storageBucket: "laclassedefou.appspot.com",
-      messagingSenderId: "625518146786",
-      appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
-      measurementId: "G-DP9HJXJGTC"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+  authDomain: "laclassedefou.firebaseapp.com",
+  projectId: "laclassedefou",
+  storageBucket: "laclassedefou.firebasestorage.app",
+  messagingSenderId: "625518146786",
+  appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+  measurementId: "G-DP9HJXJGTC"
+};
+initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const messagesEl = document.getElementById('messages');
+const membersEl = document.getElementById('members');
+const subEl = document.getElementById('sub');
+const welcome = document.getElementById('welcome');
+const composerWrap = document.getElementById('composerWrap');
+const cantWrite = document.getElementById('cantWrite');
+const textInput = document.getElementById('textInput');
+const sendBtn = document.getElementById('sendBtn');
 
-    const messagesDiv = document.getElementById("messages");
-    const form = document.getElementById("chat-form");
-    const input = document.getElementById("messageInput");
-    const subtitle = document.getElementById("subtitle");
-    const memberList = document.getElementById("memberList");
+let myUid=null, myName='', isAdmin=false;
+let classeParam = (new URLSearchParams(location.search)).get('class') || '';
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        alert("Connecte-toi d'abord !");
-        window.location.href = "login.html";
-        return;
-      }
+const BLACKLIST = ['connard','merde','putain','sale','nique'];
+function maskBadWords(s){
+  return s.replace(/\p{L}+/gu, token => {
+    const norm = token.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    return BLACKLIST.includes(norm) ? '#'.repeat(token.length) : token;
+  });
+}
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"'`=\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"/":"&#x2F;", "`":"&#96;", "=":"&#61;"}[c])); }
 
-      const userDoc = await getDoc(doc(db,"users", user.uid));
-      if (!userDoc.exists()) {
-        alert("Ton compte n'a pas de classe définie !");
-        return;
-      }
-      const classe = userDoc.data().classe;
-      subtitle.textContent = `Bienvenue dans le chat de ${classe}`;
+function classMessagesRef(cls){ return collection(db,'classes', cls, 'messages'); }
 
-      // 🔥 Messages de la classe
-      const q = query(collection(db, "classe", classe), orderBy("createdAt", "desc"), limit(100));
-      onSnapshot(q, (snap) => {
-        messagesDiv.innerHTML = "";
-        const docs = snap.docs.reverse();
-        docs.forEach((docSnap) => {
-          const m = docSnap.data();
-          const div = document.createElement("div");
-          div.classList.add("message");
-          const meta = document.createElement("div");
-          meta.classList.add("meta");
-          const who = m.displayName || m.prenom || m.email || "Anonyme";
-          const time = m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString() : "";
-          meta.textContent = `${who} • ${time}`;
-          const text = document.createElement("div");
-          text.textContent = m.text;
-          div.appendChild(meta);
-          div.appendChild(text);
-          messagesDiv.appendChild(div);
+onAuthStateChanged(auth, async user => {
+  if(!user){ location.href='login.html'; return; }
+  myUid = user.uid; myName = user.displayName || '';
+  try{ const t = await user.getIdTokenResult(); isAdmin = !!(t.claims && t.claims.admin); }catch(e){}
+
+  // determine class
+  if(!classeParam){
+    try{
+      const uSnap = await getDoc(doc(db,'users', myUid));
+      if(uSnap.exists()) classeParam = uSnap.data().classe || '';
+    }catch(e){ console.warn('cannot read users doc', e); }
+  }
+  if(!classeParam){ subEl.textContent = 'Aucune classe trouvée'; messagesEl.innerHTML = '<div class="meta">Impossible d\'afficher</div>'; membersEl.innerHTML='-'; return; }
+  const displayClass = String(classeParam).toUpperCase();
+  subEl.textContent = `Bienvenue dans le chat de ${displayClass}`;
+  welcome.textContent = `Bienvenue dans le chat de ${displayClass}`;
+
+  // load members (requires users read allowed in rules)
+  try{
+    const usersQ = query(collection(db,'users'), where('classe','==',classeParam), orderBy('prenom'));
+    const snaps = await getDocs(usersQ);
+    if(snaps.empty) membersEl.innerHTML = '<div class="meta">Aucun membre</div>';
+    else {
+      membersEl.innerHTML = '<ul style="padding-left:16px;margin:0">' + snaps.docs.map(d => `<li>${escapeHtml((d.data().prenom || d.data().displayName || '') + ' ' + (d.data().nom || ''))}</li>`).join('') + '</ul>';
+    }
+  }catch(e){
+    console.error('load members error', e);
+    membersEl.innerHTML = '<div class="meta" style="color:#ffb4b4">Impossible de charger les membres (permissions)</div>';
+  }
+
+  // check if user belongs to class
+  let userClasse = '';
+  try{
+    const uSnap = await getDoc(doc(db,'users', myUid));
+    if(uSnap.exists()) userClasse = (uSnap.data().classe||'').toString().toUpperCase();
+  }catch(e){ console.warn('read user doc failed', e); }
+
+  const canChat = isAdmin || (userClasse && userClasse === displayClass);
+  if(!canChat){
+    composerWrap.style.display = 'none';
+    cantWrite.style.display = 'block';
+    messagesEl.innerHTML = '<div class="meta">Tu peux voir les messages si les règles le permettent mais tu ne peux pas écrire.</div>';
+    // we may still try to read messages if rules allow read; attempt subscription safely:
+    try{
+      const q = query(classMessagesRef(displayClass), orderBy('createdAt','desc'), limit(100));
+      onSnapshot(q, snap => {
+        messagesEl.innerHTML = '';
+        const docs = snap.docs.slice().reverse();
+        docs.forEach(d=>{
+          const m = d.data();
+          const who = m.displayName || m.prenom || m.email || 'Anonyme';
+          const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleTimeString() : '';
+          const el = document.createElement('div'); el.className='msg';
+          el.innerHTML = `<div class="meta">${escapeHtml(who)} • ${escapeHtml(time)}</div><div>${escapeHtml(m.text)}</div>`;
+          messagesEl.appendChild(el);
         });
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        messagesEl.scrollTop = messagesEl.scrollHeight;
       });
+    }catch(e){ console.warn('subscribe read-only failed', e); }
+    return;
+  }
 
-      // 🔥 Envoyer message
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const text = input.value.trim();
-        if (!text) return;
-
-        await addDoc(collection(db, "classe", classe), {
-          text,
-          uid: user.uid,
-          displayName: user.displayName || "",
-          email: user.email || "",
-          createdAt: serverTimestamp()
-        });
-        input.value = "";
+  // can chat -> show composer and subscribe to last 100 messages
+  composerWrap.style.display = 'flex';
+  cantWrite.style.display = 'none';
+  try{
+    const q = query(classMessagesRef(displayClass), orderBy('createdAt','desc'), limit(100));
+    onSnapshot(q, snap => {
+      messagesEl.innerHTML = '';
+      const docs = snap.docs.slice().reverse();
+      docs.forEach(d=>{
+        const m = d.data(); const who = m.displayName || m.prenom || m.email || 'Anonyme';
+        const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleTimeString() : '';
+        const el = document.createElement('div'); el.className='msg';
+        el.innerHTML = `<div class="meta">${escapeHtml(who)} • ${escapeHtml(time)}</div><div>${escapeHtml(m.text)}</div>`;
+        messagesEl.appendChild(el);
       });
-
-      // 🔥 Liste des membres
-      const usersQ = query(collection(db,"users"), where("classe","==",classe), orderBy("prenom"));
-      onSnapshot(usersQ, (snap) => {
-        memberList.innerHTML = "";
-        snap.forEach(u => {
-          const data = u.data();
-          const li = document.createElement("li");
-          li.textContent = data.prenom || data.email;
-          memberList.appendChild(li);
-        });
-      });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, err => {
+      console.error('subscribe class messages error', err);
+      messagesEl.innerHTML = `<div class="meta" style="color:#ff9b9b">Erreur lecture : ${escapeHtml(err.message)}</div>`;
     });
-  </script>
+  }catch(e){ console.error('subscribe error', e); }
+
+});
+
+// send message (mask + add to classes/{classe}/messages)
+async function sendMessage(){
+  const raw = (textInput.value||'').trim();
+  if(!raw) return;
+  if(!classeParam){ alert('Classe introuvable'); return; }
+  const user = auth.currentUser;
+  if(!user){ alert('Reconnecte-toi'); return; }
+  const text = maskBadWords(raw);
+  try{
+    await addDoc(collection(db,'classes', classeParam, 'messages'), {
+      text,
+      uid: user.uid,
+      displayName: user.displayName || '',
+      email: user.email || '',
+      createdAt: serverTimestamp()
+    });
+    textInput.value = '';
+  }catch(e){
+    console.error('send error', e);
+    alert('Erreur lors de l\'envoi : ' + (e.message || e));
+  }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+textInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
+
+</script>
 </body>
 </html>
