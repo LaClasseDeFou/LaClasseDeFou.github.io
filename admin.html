@@ -1,31 +1,459 @@
-<!-- Extrait JS à coller dans admin.html (dans <script type="module">) -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin — LaClasse</title>
+<style>
+:root{
+  --bg: linear-gradient(135deg,#6a11cb,#2575fc);
+  --card: rgba(255,255,255,0.04);
+  --muted: rgba(238,242,255,0.8);
+  --accent: #ffd369;
+  --primary: linear-gradient(90deg,#7f5af0,#6a11cb);
+  --radius: 12px;
+  font-family: Inter, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:#eef2ff}
+.wrap{max-width:1200px;margin:20px auto;padding:18px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:56px;height:56px;border-radius:10px;background:var(--accent);color:#08121a;display:flex;align-items:center;justify-content:center;font-weight:900}
+.card{background:var(--card);padding:14px;border-radius:12px;margin-top:16px;border:1px solid rgba(255,255,255,0.03)}
+.grid{display:grid;grid-template-columns:1fr 420px;gap:12px}
+.panel{padding:12px;border-radius:10px;background:rgba(0,0,0,0.04);min-height:120px}
+.small{font-size:13px;color:var(--muted)}
+.controls{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 12px;border-radius:10px;border:none;background:var(--primary);color:white;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+.list{max-height:520px;overflow:auto;padding:6px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px;border-radius:8px;background:rgba(0,0,0,0.02)}
+.badge{background:rgba(255,80,80,0.12);color:#ffb4b4;padding:4px 8px;border-radius:8px;font-size:12px}
+.input{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.label{font-size:13px;color:var(--muted)}
+textarea.input{min-height:80px;resize:vertical}
+.small-muted{font-size:12px;color:#cbd5ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">ADM</div>
+      <div>
+        <div style="font-weight:800">Panneau Admin — LaClasse</div>
+        <div class="small">Interface de modération & gestion</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div id="adminStatus" class="small">Vérification administrateur…</div>
+      <button id="refreshTokenBtn" class="btn ghost">Rafraîchir token</button>
+      <button id="logoutBtn" class="btn ghost">Se déconnecter</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="flex:1">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+          <input id="searchUserInput" class="input" placeholder="Rechercher utilisateur par email ou UID" style="flex:1" />
+          <button id="searchUserBtn" class="btn ghost">Rechercher</button>
+          <button id="reloadAllBtn" class="btn">Reload</button>
+        </div>
+
+        <div class="grid">
+          <div>
+            <div class="panel">
+              <strong>Signalements</strong>
+              <div class="small">Les derniers signalements (reports)</div>
+              <div id="reportsList" class="list" style="margin-top:10px">Chargement des signalements…</div>
+            </div>
+
+            <div class="panel" style="margin-top:12px">
+              <strong>Chats de classe (admin)</strong>
+              <div class="small">Choisis une classe pour voir ses messages</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <select id="classSelect" class="input"></select>
+                <button id="openClassBtn" class="btn">Ouvrir</button>
+              </div>
+              <div id="classMessages" class="list" style="margin-top:10px">Aucun chat chargé</div>
+            </div>
+
+            <div class="panel" style="margin-top:12px">
+              <strong>Opérations rapides</strong>
+              <div class="small">Exemples : supprimer un message via son path, retirer un report, etc.</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input id="pathInput" class="input" placeholder="Ex: general/abc123 ou classes/3B/messages/xyz789" />
+                <button id="delByPathBtn" class="btn">Suppr. message</button>
+              </div>
+              <div id="opResult" class="small-muted" style="margin-top:8px"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel">
+              <strong>Utilisateurs</strong>
+              <div class="small">Lister / éditer les utilisateurs (changer classe, prenom, nom)</div>
+              <div id="usersList" class="list" style="margin-top:10px">Chargement des utilisateurs…</div>
+            </div>
+
+            <div class="panel" style="margin-top:12px">
+              <strong>Logs</strong>
+              <div id="adminLog" class="small" style="white-space:pre-wrap;max-height:150px;overflow:auto;margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:300px">
+        <div class="panel">
+          <strong>Info admin</strong>
+          <div id="meInfo" class="small" style="margin-top:8px">—</div>
+          <div style="margin-top:12px">
+            <button id="refreshListsBtn" class="btn ghost">Refresh listes (classes & users)</button>
+          </div>
+
+          <hr style="opacity:0.06;margin:12px 0">
+
+          <div class="small">Note</div>
+          <div class="small-muted" style="margin-top:6px">
+            Pour donner/revoker la claim <code>admin</code>, utilise ton script Node / Admin SDK.
+            Après avoir changé la claim, clique sur <b>Rafraîchir token</b> sur cette page.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
-import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+// Admin panel — client
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy, onSnapshot,
+  deleteDoc, addDoc, updateDoc, setDoc, serverTimestamp, limit
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDYPGjiUNLU9nzPNWVDfWMXQ7zYeE7VRtI",
+  authDomain: "laclassedefou.firebaseapp.com",
+  projectId: "laclassedefou",
+  storageBucket: "laclassedefou.firebasestorage.app",
+  messagingSenderId: "625518146786",
+  appId: "1:625518146786:web:1ccbf39c23199b0dda1abb",
+  measurementId: "G-DP9HJXJGTC"
+};
+initializeApp(firebaseConfig);
+const auth = getAuth();
 const db = getFirestore();
 
-// messagePath examples:
-// "general/<docId>"
-// "classes/3B/messages/<docId>"
+const adminStatus = document.getElementById('adminStatus');
+const refreshTokenBtn = document.getElementById('refreshTokenBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const reportsList = document.getElementById('reportsList');
+const classSelect = document.getElementById('classSelect');
+const openClassBtn = document.getElementById('openClassBtn');
+const classMessages = document.getElementById('classMessages');
+const pathInput = document.getElementById('pathInput');
+const delByPathBtn = document.getElementById('delByPathBtn');
+const opResult = document.getElementById('opResult');
+const usersList = document.getElementById('usersList');
+const reloadAllBtn = document.getElementById('reloadAllBtn');
+const adminLog = document.getElementById('adminLog');
+const refreshListsBtn = document.getElementById('refreshListsBtn');
+const searchUserBtn = document.getElementById('searchUserBtn');
+const searchUserInput = document.getElementById('searchUserInput');
+const meInfo = document.getElementById('meInfo');
 
-async function deleteByPath(messagePath){
-  const parts = messagePath.split('/').filter(Boolean);
-  if(parts.length % 2 !== 0){
-    // parts length should be even: collection/doc/collection/doc...
-    console.error('Invalid messagePath', messagePath);
-    return;
-  }
-  // build ref: doc(db, parts[0], parts[1], parts[2], parts[3], ...)
-  const args = [db];
-  for(const p of parts) args.push(p);
+let currentUser = null;
+let isAdmin = false;
+let reportsUnsub = null;
+let classMsgUnsub = null;
+
+function logAdmin(...a){
+  const line = `[${new Date().toLocaleTimeString()}] ${a.join(' ')}`;
+  adminLog.textContent = (adminLog.textContent ? adminLog.textContent + '\n' : '') + line;
+  console.log(...a);
+}
+
+// Helper to build doc ref from messagePath (collection/doc/collection/doc)
+function buildDocRefFromPath(path){
+  const parts = path.split('/').filter(Boolean);
+  if(parts.length % 2 !== 0) throw new Error('messagePath invalide : ' + path);
+  return doc(db, ...parts);
+}
+
+async function adminDeleteMessageByPath(path){
   try{
-    await deleteDoc(doc(...args));
-    console.log('Message supprimé:', messagePath);
+    const ref = buildDocRefFromPath(path);
+    await deleteDoc(ref);
+    logAdmin('Message supprimé :', path);
+    opResult.textContent = `Message supprimé : ${path}`;
   }catch(e){
-    console.error('Delete failed', e);
-    alert('Erreur suppression: ' + (e.message || e));
+    logAdmin('Erreur suppression message:', e.message || e);
+    opResult.textContent = `Erreur : ${e.message || e}`;
   }
 }
 
-// Example: on click of "Supprimer message" button created from a report:
-// deleteByPath(report.messagePath);
+// Ensure token refresh then check claim
+async function ensureAdmin(){
+  if(!auth.currentUser) throw new Error('Pas connecté');
+  await auth.currentUser.getIdToken(true); // force refresh
+  const res = await auth.currentUser.getIdTokenResult();
+  isAdmin = !!(res.claims && res.claims.admin);
+  return isAdmin;
+}
+
+// AUTH
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  if(!user){
+    location.href = 'login.html';
+    return;
+  }
+  meInfo.textContent = `${user.email} (${user.uid})`;
+  adminStatus.textContent = 'Vérification des droits admin…';
+  try{
+    const ok = await ensureAdmin();
+    if(!ok){
+      adminStatus.textContent = 'Accès refusé — compte non admin';
+      alert('Ton compte n\'a pas la claim admin. Donne la via Admin SDK puis clique "Rafraîchir token".');
+      return;
+    }
+    adminStatus.textContent = 'Connecté en tant qu\'admin';
+    logAdmin('Admin connecté', user.uid, user.email);
+    // load data
+    subscribeReports();
+    loadUsersList();
+    populateClasses();
+  }catch(e){
+    adminStatus.textContent = 'Erreur vérif admin : ' + (e.message || e);
+    logAdmin('Erreur ensureAdmin', e.message || e);
+  }
+});
+
+// Reports (signalements)
+function subscribeReports(){
+  if(reportsUnsub) reportsUnsub();
+  const q = query(collection(db,'reports'), orderBy('createdAt','desc'), limit(200));
+  reportsUnsub = onSnapshot(q, snap => {
+    reportsList.innerHTML = '';
+    if(snap.empty) { reportsList.textContent = 'Aucun signalement.'; return; }
+    snap.forEach(d => {
+      const r = d.data();
+      const id = d.id;
+      const row = document.createElement('div'); row.className = 'row';
+      const left = document.createElement('div'); left.style.flex='1';
+      const who = r.reporterEmail || r.reporterUid || 'Anonyme';
+      const when = r.createdAt && r.createdAt.toDate ? new Date(r.createdAt.toDate()).toLocaleString() : '';
+      left.innerHTML = `<div style="font-weight:700">${escapeHtml(who)} <span class="small">(${when})</span></div>
+        <div class="small-muted">Raison: ${escapeHtml(r.reason || '')}</div>
+        <div class="small-muted">Message: ${escapeHtml((r.message && r.message.text) || r.message || '')}</div>
+        <div class="small-muted">Chemin: <code>${escapeHtml(r.messagePath || r.messageId || '')}</code></div>`;
+      const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px';
+      const btnDelMsg = document.createElement('button'); btnDelMsg.className='btn'; btnDelMsg.textContent='Suppr msg';
+      btnDelMsg.onclick = async ()=> {
+        try{
+          const p = r.messagePath;
+          if(!p){ alert('Aucun messagePath dans ce report'); return; }
+          if(!confirm('Supprimer le message signalé ?')) return;
+          await adminDeleteMessageByPath(p);
+          // Optionally remove report
+          await deleteDoc(doc(db,'reports', id));
+          logAdmin('Report et message supprimés', id, p);
+        }catch(e){ alert('Erreur: '+(e.message||e)); }
+      };
+      const btnResolve = document.createElement('button'); btnResolve.className='btn ghost'; btnResolve.textContent='Marquer résolu';
+      btnResolve.onclick = async ()=> {
+        if(!confirm('Marquer ce signalement comme résolu (le supprimer) ?')) return;
+        try{ await deleteDoc(doc(db,'reports', id)); logAdmin('Report supprimé', id); }catch(e){ alert('Erreur: '+(e.message||e)); }
+      };
+      right.appendChild(btnDelMsg); right.appendChild(btnResolve);
+      row.appendChild(left); row.appendChild(right);
+      reportsList.appendChild(row);
+    });
+  }, err => {
+    reportsList.innerHTML = '<div class="small-muted" style="color:#ff9b9b">Erreur lecture reports</div>';
+    logAdmin('reports subscribe error', err);
+  });
+}
+
+// CLASSES list population (distinct values from users)
+async function populateClasses(){
+  try{
+    // fetch all users and collect classes
+    const snaps = await getDocs(collection(db,'users'));
+    const classes = new Set();
+    snaps.forEach(d => {
+      const c = (d.data().classe || '').toString().trim();
+      if(c) classes.add(c);
+    });
+    classSelect.innerHTML = '';
+    const list = Array.from(classes).sort();
+    if(list.length === 0) { classSelect.innerHTML = '<option value="">-- Aucune classe --</option>'; return; }
+    list.forEach(c => {
+      const o = document.createElement('option'); o.value = c; o.textContent = c; classSelect.appendChild(o);
+    });
+    logAdmin('Classes chargées', list.join(','));
+  }catch(e){
+    logAdmin('populateClasses error', e.message || e);
+    classSelect.innerHTML = '<option value="">Erreur</option>';
+  }
+}
+
+// Open class messages (admin)
+openClassBtn.addEventListener('click', async ()=>{
+  const cls = classSelect.value;
+  if(!cls) return alert('Choisis une classe');
+  if(classMsgUnsub) classMsgUnsub();
+  classMessages.innerHTML = 'Chargement...';
+  try{
+    const q = query(collection(db,'classes', cls, 'messages'), orderBy('createdAt','desc'), limit(200));
+    classMsgUnsub = onSnapshot(q, snap => {
+      classMessages.innerHTML = '';
+      if(snap.empty) { classMessages.textContent = 'Aucun message'; return; }
+      snap.forEach(d => {
+        const m = d.data(); const id = d.id;
+        const who = m.displayName || m.prenom || m.email || (m.uid||'');
+        const time = m.createdAt && m.createdAt.toDate ? new Date(m.createdAt.toDate()).toLocaleString() : '';
+        const row = document.createElement('div'); row.className = 'row';
+        const left = document.createElement('div'); left.style.flex='1';
+        left.innerHTML = `<div><strong>${escapeHtml(who)}</strong> <span class="small-muted">${escapeHtml(time)}</span></div><div>${escapeHtml(m.text || '')}</div>`;
+        const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px';
+        const btnDel = document.createElement('button'); btnDel.className='btn'; btnDel.textContent='Suppr';
+        btnDel.onclick = async ()=> {
+          if(!confirm('Supprimer ce message ?')) return;
+          const path = `classes/${cls}/messages/${id}`;
+          await adminDeleteMessageByPath(path);
+        };
+        right.appendChild(btnDel);
+        row.appendChild(left); row.appendChild(right);
+        classMessages.appendChild(row);
+      });
+    }, err => {
+      classMessages.innerHTML = '<div class="small-muted" style="color:#ff9b9b">Erreur lecture messages</div>';
+      logAdmin('classMessages subscribe error', err);
+    });
+  }catch(e){
+    logAdmin('openClass error', e);
+    classMessages.innerHTML = '<div class="small-muted" style="color:#ff9b9b">Erreur ouverture</div>';
+  }
+});
+
+// Users list (simple)
+async function loadUsersList(limitCount = 200){
+  usersList.innerHTML = 'Chargement...';
+  try{
+    const snaps = await getDocs(collection(db,'users'));
+    const rows = [];
+    snaps.forEach(d => rows.push({ id: d.id, ...d.data()}));
+    // sort by classe then prenom
+    rows.sort((a,b) => {
+      const A = (a.classe||'').toString().toLowerCase();
+      const B = (b.classe||'').toString().toLowerCase();
+      if(A < B) return -1; if(A > B) return 1;
+      const pa = (a.prenom||'').toString().toLowerCase();
+      const pb = (b.prenom||'').toString().toLowerCase();
+      return pa < pb ? -1 : (pa > pb ? 1 : 0);
+    });
+    usersList.innerHTML = '';
+    rows.slice(0, limitCount).forEach(u => {
+      const row = document.createElement('div'); row.className='row';
+      const left = document.createElement('div'); left.style.flex='1';
+      left.innerHTML = `<div style="font-weight:700">${escapeHtml(u.prenom || u.displayName || '(sans prénom)')} ${escapeHtml(u.nom||'')}</div>
+        <div class="small-muted">Email: ${escapeHtml(u.email || '')} • Classe: ${escapeHtml(u.classe || '')} • UID: ${escapeHtml(u.id || '')}</div>`;
+      const right = document.createElement('div'); right.style.display='flex'; right.style.flexDirection='column'; right.style.gap='6px';
+      const editBtn = document.createElement('button'); editBtn.className='btn ghost'; editBtn.textContent='Éditer';
+      editBtn.onclick = ()=> openUserEditor(u);
+      right.appendChild(editBtn);
+      row.appendChild(left); row.appendChild(right);
+      usersList.appendChild(row);
+    });
+    logAdmin('Users loaded', rows.length);
+  }catch(e){
+    usersList.innerHTML = '<div class="small-muted" style="color:#ff9b9b">Erreur chargement users</div>';
+    logAdmin('loadUsersList error', e);
+  }
+}
+
+// open user editor modal (simple prompt flow)
+async function openUserEditor(userObj){
+  // create small prompt UI using window.prompt for simplicity
+  const newPrenom = prompt('Prénom', userObj.prenom || '');
+  if(newPrenom === null) return; // cancel
+  const newNom = prompt('Nom', userObj.nom || '');
+  if(newNom === null) return;
+  // class selection: show available classes + allow custom
+  await populateClasses(); // refresh list first
+  let classOptions = Array.from(classSelect.options).map(o=>o.value).filter(Boolean);
+  const newClasse = prompt('Classe (choisir ou taper une nouvelle):\n' + classOptions.join(', '), userObj.classe || '');
+  if(newClasse === null) return;
+
+  if(!confirm(`Valider modifications pour ${userObj.email || userObj.id} ?\nPrénom: ${newPrenom}\nNom: ${newNom}\nClasse: ${newClasse}`)) return;
+
+  try{
+    const uref = doc(db,'users', userObj.id);
+    // admins can update classe — rely on rules allowing admin updates
+    await updateDoc(uref, { prenom: newPrenom, nom: newNom, classe: newClasse });
+    logAdmin('User updated', userObj.id, newPrenom, newNom, newClasse);
+    alert('Utilisateur mis à jour');
+    loadUsersList();
+    populateClasses();
+  }catch(e){
+    logAdmin('update user error', e);
+    alert('Erreur mise à jour: ' + (e.message || e));
+  }
+}
+
+// delete by path button
+delByPathBtn.addEventListener('click', async ()=>{
+  const p = pathInput.value.trim();
+  if(!p) return alert('Entre un path');
+  if(!confirm('Supprimer le document à : ' + p + ' ?')) return;
+  try{
+    await adminDeleteMessageByPath(p);
+    opResult.textContent = 'Suppression OK';
+  }catch(e){
+    opResult.textContent = 'Erreur : ' + (e.message || e);
+  }
+});
+
+// reload / utility
+reloadAllBtn.addEventListener('click', ()=> { loadUsersList(); populateClasses(); subscribeReports(); });
+refreshListsBtn.addEventListener('click', ()=> { populateClasses(); loadUsersList(); });
+searchUserBtn.addEventListener('click', async ()=>{
+  const q = (searchUserInput.value||'').trim();
+  if(!q) return alert('Tape email ou UID');
+  // try uid first, then email
+  try{
+    // try uid
+    const docRef = doc(db,'users', q);
+    const snap = await getDoc(docRef);
+    if(snap.exists()){
+      openUserEditor({ id: snap.id, ...snap.data() });
+      return;
+    }
+    // else search by email
+    const snaps = await getDocs(query(collection(db,'users'), where('email','==', q)));
+    if(snaps.empty) return alert('Aucun utilisateur trouvé');
+    const d = snaps.docs[0];
+    openUserEditor({ id: d.id, ...d.data() });
+  }catch(e){ alert('Erreur recherche: ' + (e.message || e)); }
+});
+
+// helper: escape
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"'`=\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"/":"&#x2F;", "`":"&#96;", "=":"&#61;"}[c])); }
+
+// logout
+logoutBtn.addEventListener('click', ()=> signOut(auth).then(()=> location.href='login.html'));
+
+// initial loads (when admin confirmed)
+function subscribeReports(){ /* assigned after auth */ }
+
 </script>
+</body>
+</html>
